@@ -68,10 +68,14 @@ fun PassField() {
         }
         val icon = if (!isVisible) painterResource(id = R.drawable.baseline_visibility_24)
         else painterResource(id = R.drawable.baseline_visibility_off_24)
+        val maxChar = 10
+
         OutlinedTextField(
             value = password,
             onValueChange = {
-                password = it
+                if (it.length <= maxChar) {
+                    password = it
+                }
             },
             label = {
                 Text(text = "Password")
