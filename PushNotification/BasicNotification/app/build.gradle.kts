@@ -1,14 +1,16 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    id("kotlin-kapt")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
-    namespace = "com.weskley.localnotifications"
+    namespace = "com.weskley.basicnotification"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.weskley.localnotifications"
+        applicationId = "com.weskley.basicnotification"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
@@ -59,9 +61,11 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.dagger.hilt.android)
+    implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.accompanist.permissions)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.javax.inject)
+    kapt(libs.kapt.compile)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
