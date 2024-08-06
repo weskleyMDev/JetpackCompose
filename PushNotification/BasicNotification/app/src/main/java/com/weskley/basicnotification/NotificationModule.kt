@@ -2,8 +2,11 @@ package com.weskley.basicnotification
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import androidx.core.app.NotificationCompat
+import com.weskley.basicnotification.receiver.MyReceiver
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -45,14 +48,32 @@ object NotificationModule {
     fun providesNotificationBuilder(
         @ApplicationContext context: Context
     ): NotificationCompat.Builder {
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+        val intent = Intent(context, MyReceiver::class.java).apply {
+            putExtra("message", "Notificacao com Hilt")
+        }
+
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            0,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE
+        )
+        val clickIntent = Intent(context, MainActivity::class.java)
+        val clickPendingIntent = PendingIntent.getActivity(
+            context,
+            1,
+            clickIntent,
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
+        return NotificationCompat.Builder(context, CHANNEL_ID)
             .setContentTitle("Testando")
             .setContentText("Notificacao com Hilt")
             .setSmallIcon(R.drawable.baseline_circle_notifications_24)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
-
-        return notification
+            .addAction(0, "ACTION", pendingIntent)
+            .setContentIntent(clickPendingIntent)
     }
 
     @Provides

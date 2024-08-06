@@ -1,6 +1,9 @@
 package com.weskley.basicnotification
 
 import android.app.NotificationManager
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,6 +16,9 @@ class MainViewModel @Inject constructor(
     @Named("manager") private val notificationManager: NotificationManager,
     @Named("custom") private val notificationService: NotificationService
 ): ViewModel() {
+
+    var text: String by mutableStateOf("")
+
     fun showNotification() {
         notificationManager.notify(100, notificationBuilder.build())
     }
