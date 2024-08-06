@@ -46,12 +46,16 @@ fun NotificationScreen(
         Spacer(modifier = Modifier.height(12.dp))
         Button(onClick = {
             navController.navigate(
-                Screens.Details.optionalArgs(
+                route = Screens.Details.passArgument(
                     msg = "KOTLIN"
                 )
             )
         }) {
             Text(text = "Details")
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        Button(onClick = mainViewModel::showNotificationProgress) {
+            Text(text = "Show Progress")
         }
     }
 }

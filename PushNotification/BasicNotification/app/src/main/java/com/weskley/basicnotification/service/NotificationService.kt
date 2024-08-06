@@ -1,4 +1,4 @@
-package com.weskley.basicnotification
+package com.weskley.basicnotification.service
 
 import androidx.core.app.NotificationCompat
 

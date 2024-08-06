@@ -43,7 +43,8 @@ class MainActivity : ComponentActivity() {
                             .fillMaxSize()
                             .padding(innerPadding)
                     ) {
-                        NavGraph(navController = rememberNavController())
+                        val navController = rememberNavController()
+                        NavGraph(navController = navController)
                     }
                 }
             }

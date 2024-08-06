@@ -1,7 +1,10 @@
-package com.weskley.basicnotification
+package com.weskley.basicnotification.service.imp
 
 import android.content.Context
 import androidx.core.app.NotificationCompat
+import com.weskley.basicnotification.module.CHANNEL_ID
+import com.weskley.basicnotification.R
+import com.weskley.basicnotification.service.NotificationService
 
 class NotificationServiceImp(
     private val context: Context
