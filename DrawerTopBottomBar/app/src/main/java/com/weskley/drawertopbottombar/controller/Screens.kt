@@ -1,4 +1,4 @@
-package com.weskley.drawertopbottombar.screens
+package com.weskley.drawertopbottombar.controller
 
 sealed class Screens(val screen: String) {
     data object Home: Screens("home")

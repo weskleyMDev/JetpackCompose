@@ -1,4 +1,4 @@
-package com.weskley.drawertopbottombar.components
+package com.weskley.drawertopbottombar.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.sp
 import com.weskley.drawertopbottombar.ui.theme.Green
 
 @Composable
-fun HomeScreen() {
+fun SettingsScreen() {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -24,7 +24,7 @@ fun HomeScreen() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "home".replaceFirstChar { it.uppercase() },
+                text = "settings".replaceFirstChar { it.uppercase() },
                 fontSize = 30.sp,
                 color = Green
             )

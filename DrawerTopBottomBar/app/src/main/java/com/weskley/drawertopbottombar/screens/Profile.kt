@@ -1,4 +1,4 @@
-package com.weskley.drawertopbottombar.components
+package com.weskley.drawertopbottombar.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.sp
 import com.weskley.drawertopbottombar.ui.theme.Green
 
 @Composable
-fun PostScreen() {
+fun ProfileScreen() {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -20,11 +20,16 @@ fun PostScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .align(Alignment.Center),
-            verticalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "post".replaceFirstChar { it.uppercase() },
+                text = "profile".replaceFirstChar { it.uppercase() },
+                fontSize = 30.sp,
+                color = Green
+            )
+            Text(
+                text = "profile".replaceFirstChar { it.uppercase() },
                 fontSize = 30.sp,
                 color = Green
             )

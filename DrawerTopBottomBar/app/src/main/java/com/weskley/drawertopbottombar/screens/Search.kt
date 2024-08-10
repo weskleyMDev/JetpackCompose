@@ -1,4 +1,4 @@
-package com.weskley.drawertopbottombar.components
+package com.weskley.drawertopbottombar.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.sp
 import com.weskley.drawertopbottombar.ui.theme.Green
 
 @Composable
-fun NotificationScreen() {
+fun SearchScreen() {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -24,7 +24,7 @@ fun NotificationScreen() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "notification".replaceFirstChar { it.uppercase() },
+                text = "search".replaceFirstChar { it.uppercase() },
                 fontSize = 30.sp,
                 color = Green
             )
