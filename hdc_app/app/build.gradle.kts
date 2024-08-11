@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.ui.text.google.fonts)
+    implementation(libs.androidx.core.splashscreen)
     kapt(libs.kapt.compile)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
