@@ -16,13 +16,15 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.weskley.hdc_app.R
 
 @Composable
 fun DialogPicker(
-    title: String = "Select Time",
+    title: String = stringResource(id = R.string.picker_title),
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
     toggle: @Composable () -> Unit,
@@ -64,7 +66,7 @@ fun DialogPicker(
                     toggle()
                     Spacer(modifier = Modifier.weight(1f))
                     TextButton(onClick = onDismiss) {
-                        Text(text = "Cancel")
+                        Text(text = "Cancelar")
                     }
                     TextButton(onClick = onConfirm) {
                         Text(text = "Ok")
