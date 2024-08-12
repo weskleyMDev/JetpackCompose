@@ -58,7 +58,7 @@ fun AppNavDrawer(
                 }
                 HorizontalDivider()
                 NavigationDrawerItem(
-                    label = { Text(text = "Profile") },
+                    label = { Text(text = "PERFIL") },
                     selected = false,
                     icon = { Icon(painterResource(id = R.drawable.outline_account_circle_24), contentDescription = null) },
                     onClick = {
@@ -72,7 +72,7 @@ fun AppNavDrawer(
                     }
                 )
                 NavigationDrawerItem(
-                    label = { Text(text = "Alarm") },
+                    label = { Text(text = "ALARMES") },
                     selected = false,
                     icon = { Icon(painterResource(id = R.drawable.outline_alarm_24), contentDescription = null) },
                     onClick = {
@@ -86,7 +86,7 @@ fun AppNavDrawer(
                     }
                 )
                 NavigationDrawerItem(
-                    label = { Text(text = "Prescription") },
+                    label = { Text(text = "RECEITAS") },
                     selected = false,
                     icon = { Icon(painterResource(id = R.drawable.outline_clinical_notes_24), contentDescription = null) },
                     onClick = {
@@ -101,7 +101,7 @@ fun AppNavDrawer(
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 NavigationDrawerItem(
-                    label = { Text(text = "Logout") },
+                    label = { Text(text = "SAIR") },
                     selected = false,
                     icon = { Icon(painterResource(id = R.drawable.outline_logout_24), contentDescription = null) },
                     onClick = {
