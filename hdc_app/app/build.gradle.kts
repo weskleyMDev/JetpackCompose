@@ -68,6 +68,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.ui.text.google.fonts)
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.activity.ktx)
     kapt(libs.kapt.compile)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

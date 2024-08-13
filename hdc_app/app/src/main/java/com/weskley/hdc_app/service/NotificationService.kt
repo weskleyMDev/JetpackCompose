@@ -1,6 +1,7 @@
 package com.weskley.hdc_app.service
 
 import android.app.NotificationManager
+import android.content.Context
 import android.graphics.Bitmap
 import androidx.core.app.NotificationCompat
 
@@ -22,4 +23,10 @@ interface NotificationService {
         style: NotificationCompat.Style? = null,
         cancel: Boolean = true
     ): NotificationCompat.Builder
+
+    fun scheduleNotification(
+        context: Context, hour: Int, minute: Int,
+        title: String?,
+        text: String?
+    )
 }

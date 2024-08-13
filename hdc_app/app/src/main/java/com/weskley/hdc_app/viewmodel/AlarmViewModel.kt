@@ -17,12 +17,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AlarmViewModel @Inject constructor(
-    @Notification private val service: NotificationService
+    @Notification private val service: NotificationService,
 ): ViewModel() {
     var selected = mutableIntStateOf(0)
     private val myImage by mutableIntStateOf(R.drawable.paracetamol)
 
-    fun showNotification(context: Context) {
+    fun showNotification(context: Context, title: String, text: String) {
         service.createChannel(
             Constants.CHANNEL_ID,
             Constants.CHANNEL_NAME,
@@ -33,8 +33,8 @@ class AlarmViewModel @Inject constructor(
             service.createNotification(
                 Constants.CHANNEL_ID,
                 R.drawable.logo_circ_branco,
-                "Paracetamol 100 mg",
-                "Tomar 2 doses em jejum",
+                title,
+                text,
                 Constants.HIGH_PRIORITY,
                 selectImage(context.resources, myImage),
                 NotificationCompat
@@ -43,6 +43,16 @@ class AlarmViewModel @Inject constructor(
                     .bigLargeIcon(null as Bitmap?)
             ).build()
         )
+    }
+
+    fun setScheduleNotification(
+        context: Context,
+        hour: Int,
+        minute: Int,
+        title: String,
+        text: String
+    ) {
+        service.scheduleNotification(context, hour, minute, title, text)
     }
 }
 

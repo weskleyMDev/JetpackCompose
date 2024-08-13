@@ -5,4 +5,5 @@ sealed class ScreenController(val route: String) {
     data object Alarm: ScreenController("alarm")
     data object Prescription: ScreenController("prescription")
     data object Profile: ScreenController("profile")
+    data object Feedback: ScreenController("feedback")
 }

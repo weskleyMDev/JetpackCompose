@@ -4,10 +4,14 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navDeepLink
 import com.weskley.hdc_app.screen.AlarmScreen
+import com.weskley.hdc_app.screen.Feedback
 import com.weskley.hdc_app.screen.HomeScreen
 import com.weskley.hdc_app.screen.PrescriptionScreen
 import com.weskley.hdc_app.screen.ProfileScreen
+
+const val MY_URI = "https://weskley.com"
 
 @Composable
 fun NavGraphController(navController: NavHostController) {
@@ -27,5 +31,10 @@ fun NavGraphController(navController: NavHostController) {
         composable(route = ScreenController.Profile.route) {
             ProfileScreen()
         }
+        composable(
+            route = ScreenController.Feedback.route,
+            deepLinks = listOf(navDeepLink { uriPattern = MY_URI })) {
+                Feedback()
+            }
     }
 }

@@ -1,6 +1,7 @@
 package com.weskley.hdc_app.screen
 
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,7 +32,10 @@ import com.weskley.hdc_app.viewmodel.AlarmViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AlarmScreen(context: Context = LocalContext.current, mainViewModel: AlarmViewModel = hiltViewModel()) {
+fun AlarmScreen(
+    context: Context = LocalContext.current,
+    mainViewModel: AlarmViewModel = hiltViewModel()
+) {
     var isOpen by remember {
         mutableStateOf(false)
     }
@@ -64,7 +68,7 @@ fun AlarmScreen(context: Context = LocalContext.current, mainViewModel: AlarmVie
             }
         }
         Button(
-            onClick = {mainViewModel.showNotification(context)},
+            onClick = { mainViewModel.showNotification(context, "HELLO", "WORLD") },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
         ) {
@@ -79,6 +83,16 @@ fun AlarmScreen(context: Context = LocalContext.current, mainViewModel: AlarmVie
                     minute.toString().padStart(2, '0')
                 }"
             )
+        }
+        Button(
+            onClick = {
+                mainViewModel.setScheduleNotification(context, hour, minute, "HORA", "DE CUIDAR")
+                Toast.makeText(context, "Alarme definido", Toast.LENGTH_SHORT).show()
+            },
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+        ) {
+            Text(text = "SET")
         }
     }
 }
