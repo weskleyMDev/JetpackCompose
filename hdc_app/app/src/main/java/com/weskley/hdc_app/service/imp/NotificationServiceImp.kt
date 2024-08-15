@@ -43,6 +43,7 @@ class NotificationServiceImp(
 
     override fun createNotification(
         channelId: String,
+        arg: String,
         icon: Int,
         title: String,
         text: String,
@@ -50,7 +51,6 @@ class NotificationServiceImp(
         image: Bitmap?,
         style: NotificationCompat.Style?,
         cancel: Boolean,
-        arg: String
     ): NotificationCompat.Builder {
         val clickIntent = Intent(
             Intent.ACTION_VIEW,

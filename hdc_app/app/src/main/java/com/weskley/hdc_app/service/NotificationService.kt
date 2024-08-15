@@ -15,6 +15,7 @@ interface NotificationService {
 
     fun createNotification(
         channelId: String,
+        arg: String,
         icon: Int,
         title: String,
         text: String,
@@ -22,7 +23,6 @@ interface NotificationService {
         image: Bitmap? = null,
         style: NotificationCompat.Style? = null,
         cancel: Boolean = true,
-        arg: String
     ): NotificationCompat.Builder
 
     fun scheduleNotification(
