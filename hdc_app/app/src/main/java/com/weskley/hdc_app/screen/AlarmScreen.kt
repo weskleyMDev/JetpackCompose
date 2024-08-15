@@ -64,10 +64,10 @@ fun AlarmScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "TITULO: ${viewModel.titulo}"
+                    text = "TITULO: ${viewModel.label}"
                 )
                 Text(
-                    text = "DESCRICAO: ${viewModel.descricao}"
+                    text = "DESCRICAO: ${viewModel.body}"
                 )
                 Text(
                     text = "ALARME: ${

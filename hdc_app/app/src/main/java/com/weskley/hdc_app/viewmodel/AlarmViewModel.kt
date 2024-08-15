@@ -32,6 +32,8 @@ class AlarmViewModel @Inject constructor(
     var isPickerOpen by mutableStateOf(false)
     var titulo by mutableStateOf("")
     var descricao by mutableStateOf("")
+    var label by mutableStateOf("")
+    var body by mutableStateOf("")
 
     fun pickerState() {
         isPickerOpen = !isPickerOpen
