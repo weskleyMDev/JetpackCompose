@@ -2,8 +2,10 @@ package com.weskley.hdc_app.controller
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.weskley.hdc_app.screen.AlarmScreen
 import com.weskley.hdc_app.screen.Feedback
@@ -33,8 +35,16 @@ fun NavGraphController(navController: NavHostController) {
         }
         composable(
             route = ScreenController.Feedback.route,
-            deepLinks = listOf(navDeepLink { uriPattern = MY_URI })) {
-                Feedback()
+            arguments = listOf(
+                navArgument(ARG) {
+                    type = NavType.StringType
+                    defaultValue = ""
+                }
+            ),
+            deepLinks = listOf(navDeepLink { uriPattern = "$MY_URI/$ARG={$ARG}" })) {
+                it.arguments?.getString(ARG)?.let { argument ->
+                    Feedback(argument)
+                }
             }
     }
 }

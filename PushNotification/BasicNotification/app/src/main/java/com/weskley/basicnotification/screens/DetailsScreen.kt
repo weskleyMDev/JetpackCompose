@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 
 @Composable
-fun DetailsScreen(argument: String) {
+fun DetailsScreen(name: String, lastName: String) {
     Column(
         modifier = Modifier
             .fillMaxSize(),
@@ -20,7 +20,13 @@ fun DetailsScreen(argument: String) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = argument,
+            text = name,
+            fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+        Text(
+            text = lastName,
             fontSize = MaterialTheme.typography.bodyLarge.fontSize,
             fontWeight = FontWeight.Bold,
             color = Color.White

@@ -68,7 +68,7 @@ fun AlarmScreen(
             }
         }
         Button(
-            onClick = { mainViewModel.showNotification(context, "HELLO", "WORLD") },
+            onClick = { mainViewModel.showNotification(context, "KOTLIN", "WORLD") },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
         ) {

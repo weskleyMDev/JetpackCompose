@@ -12,6 +12,7 @@ import android.graphics.Bitmap
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import com.weskley.hdc_app.MainActivity
+import com.weskley.hdc_app.controller.ARG
 import com.weskley.hdc_app.controller.MY_URI
 import com.weskley.hdc_app.receiver.NotificationReceiver
 import com.weskley.hdc_app.service.NotificationService
@@ -48,11 +49,12 @@ class NotificationServiceImp(
         priority: Int,
         image: Bitmap?,
         style: NotificationCompat.Style?,
-        cancel: Boolean
+        cancel: Boolean,
+        arg: String
     ): NotificationCompat.Builder {
         val clickIntent = Intent(
             Intent.ACTION_VIEW,
-            MY_URI.toUri(),
+            "$MY_URI/$ARG=$arg".toUri(),
             context,
             MainActivity::class.java
         ).let { intent ->

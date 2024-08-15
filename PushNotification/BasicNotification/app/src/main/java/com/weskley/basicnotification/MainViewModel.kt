@@ -1,6 +1,7 @@
 package com.weskley.basicnotification
 
 import android.app.NotificationManager
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -22,7 +23,7 @@ class MainViewModel @Inject constructor(
     @Named("custom") private val notificationService: NotificationService
 ): ViewModel() {
 
-    var text: String by mutableStateOf("")
+    var text: String by mutableStateOf("OLA")
 
     fun showNotification() {
         notificationManager.notify(100, notificationBuilder1.build())
@@ -55,8 +56,8 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun createNotification(title: String, message: String) {
+    fun createNotification(context: Context, title: String, message: String) {
         notificationManager.notify(200, notificationService
-            .createNotification(title, message).build())
+            .createNotification(context, title, message).build())
     }
 }

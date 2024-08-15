@@ -21,7 +21,8 @@ interface NotificationService {
         priority: Int,
         image: Bitmap? = null,
         style: NotificationCompat.Style? = null,
-        cancel: Boolean = true
+        cancel: Boolean = true,
+        arg: String
     ): NotificationCompat.Builder
 
     fun scheduleNotification(

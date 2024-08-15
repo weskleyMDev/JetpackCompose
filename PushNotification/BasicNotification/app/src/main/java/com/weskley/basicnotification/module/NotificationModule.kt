@@ -10,8 +10,9 @@ import androidx.core.app.TaskStackBuilder
 import androidx.core.net.toUri
 import com.weskley.basicnotification.MainActivity
 import com.weskley.basicnotification.R
-import com.weskley.basicnotification.navigation.DETAIL_ARGUMENT_KEY
-import com.weskley.basicnotification.navigation.DETAIL_ARGUMENT_URI
+import com.weskley.basicnotification.navigation.LNAME
+import com.weskley.basicnotification.navigation.NAME
+import com.weskley.basicnotification.navigation.URI
 import com.weskley.basicnotification.receiver.MyReceiver
 import com.weskley.basicnotification.service.NotificationService
 import com.weskley.basicnotification.service.imp.NotificationServiceImp
@@ -65,7 +66,7 @@ object NotificationModule {
     @Singleton
     @Named("builder1")
     fun providesNotificationBuilder(
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
     ): NotificationCompat.Builder {
         val intent = Intent(context, MyReceiver::class.java).apply {
             putExtra("message", "Notificacao com Hilt")
@@ -85,7 +86,7 @@ object NotificationModule {
 //        )
         val clickIntent = Intent(
             Intent.ACTION_VIEW,
-            "$DETAIL_ARGUMENT_URI/$DETAIL_ARGUMENT_KEY=NOTIFICATION".toUri(),
+            "$URI/$NAME=NOTIFICATION&$LNAME=HILT".toUri(),
             context,
             MainActivity::class.java
         )

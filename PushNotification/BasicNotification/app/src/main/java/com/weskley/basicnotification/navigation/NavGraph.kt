@@ -10,8 +10,9 @@ import androidx.navigation.navDeepLink
 import com.weskley.basicnotification.screens.DetailsScreen
 import com.weskley.basicnotification.screens.NotificationScreen
 
-const val DETAIL_ARGUMENT_KEY = "name"
-const val DETAIL_ARGUMENT_URI = "https://weskley.com"
+const val NAME = "name"
+const val LNAME = "lname"
+const val URI = "https://weskley.com"
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -25,17 +26,20 @@ fun NavGraph(navController: NavHostController) {
         composable(
             route = Screens.Details.route,
             arguments = listOf(
-                navArgument(DETAIL_ARGUMENT_KEY) {
+                navArgument(NAME) {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+                navArgument(LNAME) {
                     type = NavType.StringType
                     defaultValue = ""
                 }
             ),
-            deepLinks = listOf(navDeepLink { uriPattern = "$DETAIL_ARGUMENT_URI/$DETAIL_ARGUMENT_KEY={$DETAIL_ARGUMENT_KEY}" })
+            deepLinks = listOf(navDeepLink { uriPattern = "$URI/$NAME={$NAME}&$LNAME={$LNAME}" })
         ) {
-            val args = it.arguments
-            args?.getString(DETAIL_ARGUMENT_KEY)?.let {name ->
-                DetailsScreen(argument = name)
-            }
+            val name = it.arguments?.getString(NAME)
+            val lname = it.arguments?.getString(LNAME)
+            DetailsScreen(name = name!!, lastName = lname!!)
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.weskley.basicnotification.screens
 
+import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -11,6 +12,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -19,6 +21,7 @@ import com.weskley.basicnotification.navigation.Screens
 
 @Composable
 fun NotificationScreen(
+    context: Context = LocalContext.current,
     navController: NavHostController, mainViewModel: MainViewModel =
         hiltViewModel()
 ) {
@@ -36,6 +39,7 @@ fun NotificationScreen(
         })
         Button(onClick = {
             mainViewModel.createNotification(
+                context,
                 title = mainViewModel.text.trim()
                     .replaceFirstChar { value -> value.uppercase() },
                 "MUNDO"
@@ -47,7 +51,7 @@ fun NotificationScreen(
         Button(onClick = {
             navController.navigate(
                 route = Screens.Details.passArgument(
-                    msg = "KOTLIN"
+                    name = "KOTLIN"
                 )
             )
         }) {

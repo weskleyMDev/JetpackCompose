@@ -40,7 +40,9 @@ class AlarmViewModel @Inject constructor(
                 NotificationCompat
                     .BigPictureStyle()
                     .bigPicture(selectImage(context.resources, myImage))
-                    .bigLargeIcon(null as Bitmap?)
+                    .bigLargeIcon(null as Bitmap?),
+                true,
+                title
             ).build()
         )
     }
