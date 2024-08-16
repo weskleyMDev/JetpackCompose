@@ -117,6 +117,11 @@ fun BottomSheet(
                     TextButton(onClick = {
                         viewModel.changeTitulo("")
                         viewModel.changeDesc("")
+                        viewModel.hora = 0
+                        viewModel.minuto = 0
+                        viewModel.label = ""
+                        viewModel.body = ""
+                        viewModel.myImage = R.drawable.logo_circ_branco
                         scope.launch {
                             sheetState.hide()
                         }.invokeOnCompletion {
@@ -133,22 +138,36 @@ fun BottomSheet(
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     TextButton(onClick = {
-                        viewModel.setScheduleNotification(
-                            context,
-                            viewModel.hora,
-                            viewModel.minuto,
-                            viewModel.titulo.value,
-                            viewModel.descricao.value,
-                            viewModel.myImage
-                        )
-                        Toast.makeText(context, "Alarme Definido!!", Toast.LENGTH_SHORT).show()
-                        viewModel.titulo.value = ""
-                        viewModel.descricao.value = ""
-                        scope.launch {
-                            sheetState.hide()
-                        }.invokeOnCompletion {
-                            if (!sheetState.isVisible) {
-                                onDismiss()
+                        when {
+                            viewModel.titulo.value.isEmpty() -> {
+                                Toast.makeText(context, "Preencha o Título", Toast.LENGTH_SHORT)
+                                    .show()
+                                return@TextButton
+                            }
+                            viewModel.descricao.value.isEmpty() -> {
+                                Toast.makeText(context, "Preencha a Descrição", Toast.LENGTH_SHORT)
+                                    .show()
+                                return@TextButton
+                            }
+                            else -> {
+                                viewModel.setScheduleNotification(
+                                    context,
+                                    viewModel.hora,
+                                    viewModel.minuto,
+                                    viewModel.titulo.value.trim(),
+                                    viewModel.descricao.value.trim(),
+                                    viewModel.myImage
+                                )
+                                Toast.makeText(context, "Alarme Definido!!", Toast.LENGTH_SHORT).show()
+                                viewModel.titulo.value = ""
+                                viewModel.descricao.value = ""
+                                scope.launch {
+                                    sheetState.hide()
+                                }.invokeOnCompletion {
+                                    if (!sheetState.isVisible) {
+                                        onDismiss()
+                                    }
+                                }
                             }
                         }
                     }) {

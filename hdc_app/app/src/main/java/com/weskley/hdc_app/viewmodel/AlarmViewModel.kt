@@ -31,7 +31,7 @@ class AlarmViewModel @Inject constructor(
     private val inputModel: InputModel
 ) : ViewModel() {
     var selected = mutableIntStateOf(0)
-    var myImage by mutableIntStateOf(R.drawable.paracetamol)
+    var myImage by mutableIntStateOf(R.drawable.logo_circ_branco)
     var hora by mutableIntStateOf(0)
     var minuto by mutableIntStateOf(0)
     var isPickerOpen by mutableStateOf(false)

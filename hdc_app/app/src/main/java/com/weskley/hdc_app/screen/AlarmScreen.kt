@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.weskley.hdc_app.component.BottomSheet
@@ -77,8 +78,9 @@ fun AlarmScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = viewModel.hora.toString().padStart(2, '0'),
-                        style = MaterialTheme.typography.displayMedium
+                        text = "${ viewModel.hora.toString().padStart(2, '0') }:${ viewModel.minuto.toString().padStart(2, '0')}",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold
                     )
                 }
                 Spacer(modifier = Modifier.width(16.dp))
