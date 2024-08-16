@@ -23,6 +23,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,7 +47,7 @@ fun BottomSheet(
 ) {
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
-    val desc = viewModel.descricao
+    val desc by viewModel.descricao
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
@@ -63,24 +64,6 @@ fun BottomSheet(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 DropMenu()
-//                TextField(
-//                    placeholder = {
-//                        Text(
-//                            text = "Título",
-//                            maxLines = 1,
-//                            overflow = TextOverflow.Ellipsis
-//                        )
-//                    },
-//                    label = {
-//                        Text(text = "Título")
-//                    },
-//                    textStyle = MaterialTheme.typography.titleLarge,
-//                    value = viewModel.titulo,
-//                    onValueChange = { newTitle ->
-//                        viewModel.titulo = newTitle
-//                        viewModel.label = newTitle
-//                    },
-//                )
                 Spacer(modifier = Modifier.height(8.dp))
                 TextField(
                     placeholder = {
@@ -132,6 +115,8 @@ fun BottomSheet(
                 Row {
                     Spacer(modifier = Modifier.weight(1f))
                     TextButton(onClick = {
+                        viewModel.changeTitulo("")
+                        viewModel.changeDesc("")
                         scope.launch {
                             sheetState.hide()
                         }.invokeOnCompletion {
@@ -152,13 +137,13 @@ fun BottomSheet(
                             context,
                             viewModel.hora,
                             viewModel.minuto,
-                            viewModel.titulo,
-                            viewModel.descricao,
+                            viewModel.titulo.value,
+                            viewModel.descricao.value,
                             viewModel.myImage
                         )
                         Toast.makeText(context, "Alarme Definido!!", Toast.LENGTH_SHORT).show()
-                        viewModel.titulo = ""
-                        viewModel.descricao = ""
+                        viewModel.titulo.value = ""
+                        viewModel.descricao.value = ""
                         scope.launch {
                             sheetState.hide()
                         }.invokeOnCompletion {

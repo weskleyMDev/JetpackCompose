@@ -16,6 +16,7 @@ import androidx.lifecycle.ViewModel
 import com.weskley.hdc_app.R
 import com.weskley.hdc_app.component.MyTimePicker
 import com.weskley.hdc_app.constant.Constants
+import com.weskley.hdc_app.model.InputModel
 import com.weskley.hdc_app.module.Channel
 import com.weskley.hdc_app.module.Notification
 import com.weskley.hdc_app.service.NotificationService
@@ -26,15 +27,16 @@ import javax.inject.Inject
 @HiltViewModel
 class AlarmViewModel @Inject constructor(
     @Notification private val service: NotificationService,
-    @Channel private val channel: NotificationManager
+    @Channel private val channel: NotificationManager,
+    private val inputModel: InputModel
 ) : ViewModel() {
     var selected = mutableIntStateOf(0)
     var myImage by mutableIntStateOf(R.drawable.paracetamol)
     var hora by mutableIntStateOf(0)
     var minuto by mutableIntStateOf(0)
     var isPickerOpen by mutableStateOf(false)
-    var titulo by mutableStateOf("")
-    var descricao by mutableStateOf("")
+    var titulo = mutableStateOf(inputModel.titulo)
+    var descricao = mutableStateOf(inputModel.descricao)
     var label by mutableStateOf("")
     var body by mutableStateOf("")
 
@@ -57,10 +59,12 @@ class AlarmViewModel @Inject constructor(
     }
 
     fun changeDesc(newDesc: String) {
-        descricao = newDesc
+        inputModel.descricao = newDesc
+        descricao.value = newDesc
     }
     fun changeTitulo(newTitulo: String) {
-        titulo = newTitulo
+        inputModel.titulo = newTitulo
+        titulo.value = newTitulo
     }
 
     fun showNotification(

@@ -61,7 +61,7 @@ fun DropMenu(viewModel: AlarmViewModel = hiltViewModel()) {
                                 "Dipirona" -> R.drawable.dipirona
                                 "Ibuprofeno" -> R.drawable.ibuprofeno
                                 "Estomazil" -> R.drawable.estomazil
-                                else -> R.drawable.paracetamol
+                                else -> R.drawable.logo_reto_branco
                             }
                             viewModel.changeTitulo(selectedText)
                             viewModel.label = selectedText
