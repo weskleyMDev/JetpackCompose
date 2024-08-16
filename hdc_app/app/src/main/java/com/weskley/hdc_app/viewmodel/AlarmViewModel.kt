@@ -1,5 +1,6 @@
 package com.weskley.hdc_app.viewmodel
 
+import android.app.NotificationManager
 import android.content.Context
 import android.content.res.Resources
 import android.graphics.Bitmap
@@ -15,6 +16,7 @@ import androidx.lifecycle.ViewModel
 import com.weskley.hdc_app.R
 import com.weskley.hdc_app.component.MyTimePicker
 import com.weskley.hdc_app.constant.Constants
+import com.weskley.hdc_app.module.Channel
 import com.weskley.hdc_app.module.Notification
 import com.weskley.hdc_app.service.NotificationService
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,9 +26,10 @@ import javax.inject.Inject
 @HiltViewModel
 class AlarmViewModel @Inject constructor(
     @Notification private val service: NotificationService,
+    @Channel private val channel: NotificationManager
 ) : ViewModel() {
     var selected = mutableIntStateOf(0)
-    val myImage by mutableIntStateOf(R.drawable.paracetamol)
+    var myImage by mutableIntStateOf(R.drawable.paracetamol)
     var hora by mutableIntStateOf(0)
     var minuto by mutableIntStateOf(0)
     var isPickerOpen by mutableStateOf(false)
@@ -53,13 +56,20 @@ class AlarmViewModel @Inject constructor(
         }
     }
 
-    fun showNotification(context: Context, title: String, text: String) {
-        service.createChannel(
-            Constants.CHANNEL_ID,
-            Constants.CHANNEL_NAME,
-            Constants.CHANNEL_DESCRIPTION,
-            Constants.HIGH_IMPORTANCE
-        ).notify(
+    fun changeDesc(newDesc: String) {
+        descricao = newDesc
+    }
+    fun changeTitulo(newTitulo: String) {
+        titulo = newTitulo
+    }
+
+    fun showNotification(
+        context: Context,
+        title: String,
+        text: String,
+        img: Int
+    ) {
+        channel.notify(
             Constants.REQUEST_CODE,
             service.createNotification(
                 Constants.CHANNEL_ID,
@@ -68,10 +78,10 @@ class AlarmViewModel @Inject constructor(
                 title,
                 text,
                 Constants.HIGH_PRIORITY,
-                selectImage(context.resources, myImage),
+                selectImage(context.resources, img),
                 NotificationCompat
                     .BigPictureStyle()
-                    .bigPicture(selectImage(context.resources, myImage))
+                    .bigPicture(selectImage(context.resources, img))
                     .bigLargeIcon(null as Bitmap?),
             ).build()
         )
@@ -82,9 +92,10 @@ class AlarmViewModel @Inject constructor(
         hour: Int,
         minute: Int,
         title: String,
-        text: String
+        text: String,
+        img: Int
     ) {
-        service.scheduleNotification(context, hour, minute, title, text)
+        service.scheduleNotification(context, hour, minute, title, text, img)
     }
 }
 

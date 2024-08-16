@@ -46,6 +46,7 @@ fun BottomSheet(
 ) {
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
+    val desc = viewModel.descricao
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
@@ -61,24 +62,25 @@ fun BottomSheet(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                TextField(
-                    placeholder = {
-                        Text(
-                            text = "Título",
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    },
-                    label = {
-                        Text(text = "Título")
-                    },
-                    textStyle = MaterialTheme.typography.titleLarge,
-                    value = viewModel.titulo,
-                    onValueChange = { newTitle ->
-                        viewModel.titulo = newTitle
-                        viewModel.label = newTitle
-                    },
-                )
+                DropMenu()
+//                TextField(
+//                    placeholder = {
+//                        Text(
+//                            text = "Título",
+//                            maxLines = 1,
+//                            overflow = TextOverflow.Ellipsis
+//                        )
+//                    },
+//                    label = {
+//                        Text(text = "Título")
+//                    },
+//                    textStyle = MaterialTheme.typography.titleLarge,
+//                    value = viewModel.titulo,
+//                    onValueChange = { newTitle ->
+//                        viewModel.titulo = newTitle
+//                        viewModel.label = newTitle
+//                    },
+//                )
                 Spacer(modifier = Modifier.height(8.dp))
                 TextField(
                     placeholder = {
@@ -92,9 +94,9 @@ fun BottomSheet(
                         Text(text = "Descrição")
                     },
                     textStyle = MaterialTheme.typography.titleLarge,
-                    value = viewModel.descricao,
+                    value = desc,
                     onValueChange = { newDesc ->
-                        viewModel.descricao = newDesc
+                        viewModel.changeDesc(newDesc)
                         viewModel.body = newDesc
                     },
                 )
@@ -151,7 +153,8 @@ fun BottomSheet(
                             viewModel.hora,
                             viewModel.minuto,
                             viewModel.titulo,
-                            viewModel.descricao
+                            viewModel.descricao,
+                            viewModel.myImage
                         )
                         Toast.makeText(context, "Alarme Definido!!", Toast.LENGTH_SHORT).show()
                         viewModel.titulo = ""

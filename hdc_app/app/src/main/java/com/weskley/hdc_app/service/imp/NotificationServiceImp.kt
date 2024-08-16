@@ -79,7 +79,8 @@ class NotificationServiceImp(
         hour: Int,
         minute: Int,
         title: String?,
-        text: String?
+        text: String?,
+        img: Int?
     ) {
         val time = Calendar.getInstance().apply {
             timeInMillis = System.currentTimeMillis()
@@ -90,6 +91,7 @@ class NotificationServiceImp(
         val alarmIntent = Intent(context, NotificationReceiver::class.java).apply {
             putExtra("title", title)
             putExtra("text", text)
+            putExtra("img", img)
         }
         val pendingIntent = PendingIntent.getBroadcast(
             context,

@@ -70,6 +70,9 @@ fun AlarmScreen(
                     text = "DESCRICAO: ${viewModel.body}"
                 )
                 Text(
+                    text = "MEDICAMENTO: ${viewModel.myImage}"
+                )
+                Text(
                     text = "ALARME: ${
                         viewModel.hora.toString().padStart(2, '0')
                     }:${viewModel.minuto.toString().padStart(2, '0')}"

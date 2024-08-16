@@ -28,6 +28,7 @@ interface NotificationService {
     fun scheduleNotification(
         context: Context, hour: Int, minute: Int,
         title: String?,
-        text: String?
+        text: String?,
+        img: Int?
     )
 }
