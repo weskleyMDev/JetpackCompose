@@ -1,6 +1,5 @@
 package com.weskley.hdc_app.receiver
 
-import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.TaskStackBuilder
@@ -38,15 +37,7 @@ private fun showNotification(context: Context, title: String, text: String, imag
 
     val manager = context.getSystemService(NotificationManager::class.java)
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        val channel = NotificationChannel(
-            Constants.CHANNEL_ID,
-            Constants.CHANNEL_NAME,
-            Constants.HIGH_IMPORTANCE
-        )
-        channel.description = Constants.CHANNEL_DESCRIPTION
-        manager.createNotificationChannel(channel)
-    }
+    val flag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) PendingIntent.FLAG_IMMUTABLE else 0
 
     val clickIntent = Intent(
         Intent.ACTION_VIEW,
@@ -56,7 +47,7 @@ private fun showNotification(context: Context, title: String, text: String, imag
     ).let { intent ->
         TaskStackBuilder.create(context).run {
             addNextIntentWithParentStack(intent)
-            getPendingIntent(0, PendingIntent.FLAG_IMMUTABLE)
+            getPendingIntent(Constants.PENDING_CODE, flag)
         }
     }
 
