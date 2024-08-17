@@ -1,11 +1,7 @@
 package com.weskley.hdc_app.module
 
-import android.app.NotificationManager
+import android.app.AlarmManager
 import android.content.Context
-import com.weskley.hdc_app.constant.Constants.CHANNEL_DESCRIPTION
-import com.weskley.hdc_app.constant.Constants.CHANNEL_ID
-import com.weskley.hdc_app.constant.Constants.CHANNEL_NAME
-import com.weskley.hdc_app.constant.Constants.HIGH_IMPORTANCE
 import com.weskley.hdc_app.service.NotificationService
 import com.weskley.hdc_app.service.imp.NotificationServiceImp
 import dagger.Module
@@ -31,17 +27,11 @@ object AlarmModule {
 
     @Provides
     @Singleton
-    @Channel
-    fun provideChannel(
+    @Manager
+    fun provideAlarmManager(
         @ApplicationContext context: Context
-    ): NotificationManager {
-        return NotificationServiceImp(context)
-            .createChannel(
-                CHANNEL_ID,
-                CHANNEL_NAME,
-                CHANNEL_DESCRIPTION,
-                HIGH_IMPORTANCE
-            )
+    ): AlarmManager {
+        return context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     }
 }
 
@@ -51,4 +41,4 @@ annotation class Notification
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
-annotation class Channel
+annotation class Manager

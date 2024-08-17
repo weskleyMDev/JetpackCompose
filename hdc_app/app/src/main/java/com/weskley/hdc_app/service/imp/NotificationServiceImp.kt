@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Context.ALARM_SERVICE
 import android.content.Intent
 import android.graphics.Bitmap
+import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import com.weskley.hdc_app.MainActivity
@@ -30,14 +31,15 @@ class NotificationServiceImp(
     ): NotificationManager {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        val channel = NotificationChannel(
-            id,
-            name,
-            importance
-        )
-        channel.description = description
-        notificationManager.createNotificationChannel(channel)
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                id,
+                name,
+                importance
+            )
+            channel.description = description
+            notificationManager.createNotificationChannel(channel)
+        }
         return notificationManager
     }
 

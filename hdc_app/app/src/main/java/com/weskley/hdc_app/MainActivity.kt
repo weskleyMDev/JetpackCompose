@@ -25,15 +25,15 @@ class MainActivity : ComponentActivity() {
         installSplashScreen().setKeepOnScreenCondition { false }
         enableEdgeToEdge()
         setContent {
-            Hdc_appTheme {
-                val postNotificationPermissionState = rememberPermissionState(
-                    permission = android.Manifest.permission.POST_NOTIFICATIONS
-                )
-                LaunchedEffect(key1 = true) {
-                    if (!postNotificationPermissionState.status.isGranted) {
-                        postNotificationPermissionState.launchPermissionRequest()
-                    }
+            val postNotificationPermissionState = rememberPermissionState(
+                permission = android.Manifest.permission.POST_NOTIFICATIONS
+            )
+            LaunchedEffect(key1 = true) {
+                if (!postNotificationPermissionState.status.isGranted) {
+                    postNotificationPermissionState.launchPermissionRequest()
                 }
+            }
+            Hdc_appTheme {
                 AppNavDrawer()
             }
         }

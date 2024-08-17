@@ -1,35 +1,87 @@
 package com.weskley.hdc_app.receiver
 
+import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.TaskStackBuilder
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.res.Resources
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.media.RingtoneManager
+import android.os.Build
 import android.util.Log
-import com.weskley.hdc_app.model.InputModel
-import com.weskley.hdc_app.service.NotificationService
-import com.weskley.hdc_app.service.imp.NotificationServiceImp
-import com.weskley.hdc_app.viewmodel.AlarmViewModel
+import androidx.core.app.NotificationCompat
+import androidx.core.net.toUri
+import com.weskley.hdc_app.MainActivity
+import com.weskley.hdc_app.R
+import com.weskley.hdc_app.constant.Constants
+import com.weskley.hdc_app.controller.ARG
+import com.weskley.hdc_app.controller.MY_URI
 
-class NotificationReceiver: BroadcastReceiver() {
-    private lateinit var manager: NotificationManager
-    private lateinit var service: NotificationService
-    private lateinit var input: InputModel
+class NotificationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         try {
-            manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            service = NotificationServiceImp(context)
-            input = InputModel()
             val title = intent.getStringExtra("title") ?: ""
             val text = intent.getStringExtra("text") ?: ""
             val img = intent.getIntExtra("img", 0)
-            val viewModel = AlarmViewModel(
-                service,
-                manager,
-                input
-            )
-            viewModel.showNotification(context, title, text, img)
+            showNotification(context, title, text, img)
         } catch (e: Exception) {
-            Log.d("ERROR:","${e.printStackTrace()}")
+            Log.d("ERROR:", "${e.printStackTrace()}")
         }
     }
+}
+
+private fun showNotification(context: Context, title: String, text: String, image: Int) {
+
+    val manager = context.getSystemService(NotificationManager::class.java)
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val channel = NotificationChannel(
+            Constants.CHANNEL_ID,
+            Constants.CHANNEL_NAME,
+            Constants.HIGH_IMPORTANCE
+        )
+        channel.description = Constants.CHANNEL_DESCRIPTION
+        manager.createNotificationChannel(channel)
+    }
+
+    val clickIntent = Intent(
+        Intent.ACTION_VIEW,
+        "$MY_URI/$ARG=$title".toUri(),
+        context,
+        MainActivity::class.java
+    ).let { intent ->
+        TaskStackBuilder.create(context).run {
+            addNextIntentWithParentStack(intent)
+            getPendingIntent(0, PendingIntent.FLAG_IMMUTABLE)
+        }
+    }
+
+    val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+
+    val notification = NotificationCompat.Builder(context, Constants.CHANNEL_ID)
+        .setSmallIcon(R.drawable.logo_circ_branco)
+        .setContentTitle(title)
+        .setContentText(text)
+        .setPriority(Constants.HIGH_PRIORITY)
+        .setLargeIcon(selectImage(context.resources, image))
+        .setStyle(
+            NotificationCompat
+                .BigPictureStyle()
+                .bigPicture(selectImage(context.resources, image))
+                .bigLargeIcon(null as Bitmap?)
+        )
+        .setContentIntent(clickIntent)
+        .setVibrate(longArrayOf(0, 500, 1000))
+        .setSound(soundUri)
+        .setAutoCancel(true)
+
+    manager.notify(Constants.REQUEST_CODE, notification.build())
+}
+
+private fun selectImage(resource: Resources, image: Int): Bitmap {
+    return BitmapFactory.decodeResource(resource, image)
 }

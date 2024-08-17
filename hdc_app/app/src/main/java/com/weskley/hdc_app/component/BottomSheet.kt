@@ -23,7 +23,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,13 +40,12 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BottomSheet(
-    context: Context = LocalContext.current,
     onDismiss: () -> Unit,
     viewModel: AlarmViewModel = hiltViewModel()
 ) {
+    val context: Context = LocalContext.current.applicationContext
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
-    val desc by viewModel.descricao
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
@@ -77,7 +75,7 @@ fun BottomSheet(
                         Text(text = "Descrição")
                     },
                     textStyle = MaterialTheme.typography.titleLarge,
-                    value = desc,
+                    value = viewModel.descricao.value,
                     onValueChange = { newDesc ->
                         viewModel.changeDesc(newDesc)
                         viewModel.body = newDesc
@@ -115,13 +113,7 @@ fun BottomSheet(
                 Row {
                     Spacer(modifier = Modifier.weight(1f))
                     TextButton(onClick = {
-                        viewModel.changeTitulo("")
-                        viewModel.changeDesc("")
-                        viewModel.hora = 0
-                        viewModel.minuto = 0
-                        viewModel.label = ""
-                        viewModel.body = ""
-                        viewModel.myImage = R.drawable.logo_circ_branco
+                        viewModel.clearFields()
                         scope.launch {
                             sheetState.hide()
                         }.invokeOnCompletion {
@@ -150,17 +142,10 @@ fun BottomSheet(
                                 return@TextButton
                             }
                             else -> {
-                                viewModel.setScheduleNotification(
-                                    context,
-                                    viewModel.hora,
-                                    viewModel.minuto,
-                                    viewModel.titulo.value.trim(),
-                                    viewModel.descricao.value.trim(),
-                                    viewModel.myImage
-                                )
+                                viewModel.setAlarm()
                                 Toast.makeText(context, "Alarme Definido!!", Toast.LENGTH_SHORT).show()
-                                viewModel.titulo.value = ""
-                                viewModel.descricao.value = ""
+                                viewModel.changeTitulo("")
+                                viewModel.changeDesc("")
                                 scope.launch {
                                     sheetState.hide()
                                 }.invokeOnCompletion {
@@ -180,6 +165,15 @@ fun BottomSheet(
                 }
             }
         }
-        viewModel.ShowTimePicker()
+        if (viewModel.isPickerOpen) {
+            MyTimePicker(
+                onDismiss = { viewModel.isPickerOpen = false },
+                onConfirm = {
+                    viewModel.isPickerOpen = false
+                    viewModel.hora = it.hour
+                    viewModel.minuto = it.minute
+                }
+            )
+        }
     }
 }
