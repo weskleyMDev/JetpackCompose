@@ -31,12 +31,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
-fun TodoListPage(paddingValues: PaddingValues, viewModel: TodoViewModel){
+fun TodoListPage(paddingValues: PaddingValues, viewModel: TodoViewModel = hiltViewModel()){
 
     val todoList by viewModel.todoList.observeAsState()
+    var inputTitle by remember {
+        mutableStateOf("")
+    }
     var inputText by remember {
+        mutableStateOf("")
+    }
+    var inputImage by remember {
         mutableStateOf("")
     }
 
@@ -46,20 +53,33 @@ fun TodoListPage(paddingValues: PaddingValues, viewModel: TodoViewModel){
             .padding(top = paddingValues.calculateTopPadding())
     ) {
 
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
             OutlinedTextField(
-                modifier= Modifier.weight(1f),
+                value = inputTitle,
+                onValueChange = {
+                    inputTitle = it
+                })
+            OutlinedTextField(
                 value = inputText,
                 onValueChange = {
                     inputText = it
                 })
+            OutlinedTextField(
+                value = inputImage,
+                onValueChange = {
+                    inputImage = it
+                })
             Button(onClick = {
-                viewModel.addTodo(inputText)
+                viewModel.addTodo(
+                    title = inputTitle,
+                    text = inputText,
+                    image = inputImage
+                )
                 inputText = ""
             }) {
                 Text(text = "Add")
@@ -105,7 +125,17 @@ fun TodoItem(item : Todo,onDelete : ()-> Unit) {
         ) {
             Text(
                 text = item.title,
-                fontSize = 20.sp,
+                fontSize = 16.sp,
+                color = Color.White
+            )
+            Text(
+                text = item.text,
+                fontSize = 16.sp,
+                color = Color.White
+            )
+            Text(
+                text = item.image,
+                fontSize = 16.sp,
                 color = Color.White
             )
         }

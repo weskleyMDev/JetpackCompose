@@ -9,4 +9,6 @@ data class Todo(
     var id: Int = 0,
 
     var title: String,
+    var text: String,
+    var image: String
 )
