@@ -7,6 +7,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Qualifier
 import javax.inject.Singleton
 
 @Module
@@ -26,7 +27,12 @@ object TodoModule {
 
     @Provides
     @Singleton
+    @DatabaseDao
     fun provideTodoDao(database: TodoDataBase): TodoDao {
-        return database.getTodoDao()
+        return database.dao
     }
 }
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class DatabaseDao

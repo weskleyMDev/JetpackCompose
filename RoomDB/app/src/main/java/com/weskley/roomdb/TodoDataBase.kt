@@ -10,5 +10,5 @@ abstract class TodoDataBase: RoomDatabase() {
         const val DATABASE_NAME = "todo_db"
     }
 
-    abstract fun getTodoDao(): TodoDao
+    abstract val dao: TodoDao
 }

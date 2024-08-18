@@ -1,16 +1,16 @@
 package com.weskley.roomdb
 
-import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Query
 import androidx.room.Upsert
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TodoDao {
 
     @Query("SELECT * FROM Todo")
-    fun getAllTodo(): LiveData<List<Todo>>
+    fun getAllTodo(): Flow<List<Todo>>
 
     @Upsert
     fun addTodo(todo: Todo)

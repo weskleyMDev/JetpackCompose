@@ -8,10 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -19,7 +16,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -28,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -36,7 +31,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @Composable
 fun TodoListPage(paddingValues: PaddingValues, viewModel: TodoViewModel = hiltViewModel()){
 
-    val todoList by viewModel.todoList.observeAsState()
+//    val todoList by viewModel.todoList.observeAsState()
     var inputTitle by remember {
         mutableStateOf("")
     }
@@ -74,7 +69,7 @@ fun TodoListPage(paddingValues: PaddingValues, viewModel: TodoViewModel = hiltVi
                 onValueChange = {
                     inputImage = it
                 })
-            Button(onClick = {
+            /*Button(onClick = {
                 viewModel.addTodo(
                     title = inputTitle,
                     text = inputText,
@@ -83,10 +78,10 @@ fun TodoListPage(paddingValues: PaddingValues, viewModel: TodoViewModel = hiltVi
                 inputText = ""
             }) {
                 Text(text = "Add")
-            }
+            }*/
         }
 
-        todoList?.let { list ->
+        /*todoList?.let { list ->
             LazyColumn(
                 content = {
                     items(list){item: Todo ->
@@ -101,11 +96,8 @@ fun TodoListPage(paddingValues: PaddingValues, viewModel: TodoViewModel = hiltVi
             textAlign = TextAlign.Center,
             text = "No items yet",
             fontSize = 16.sp
-        )
-
-
+        )*/
     }
-
 }
 
 @Composable
