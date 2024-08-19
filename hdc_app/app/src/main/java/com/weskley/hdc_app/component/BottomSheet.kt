@@ -1,9 +1,7 @@
 package com.weskley.hdc_app.component
 
-import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -11,11 +9,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -23,7 +21,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -31,11 +31,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.weskley.hdc_app.R
+import com.weskley.hdc_app.state.NotificationEvent
 import com.weskley.hdc_app.viewmodel.AlarmViewModel
-import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,26 +45,29 @@ fun BottomSheet(
     onDismiss: () -> Unit,
     viewModel: AlarmViewModel = hiltViewModel()
 ) {
-    val context: Context = LocalContext.current.applicationContext
+    val context = LocalContext.current.applicationContext
+    val state by viewModel.state.collectAsState()
+    val calendar = Calendar.getInstance()
     val sheetState = rememberModalBottomSheetState()
-    val scope = rememberCoroutineScope()
+    val formatter = remember {
+        SimpleDateFormat("HH:mm", Locale.getDefault())
+    }
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
     ) {
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Column(
                 modifier = Modifier
-                    .width(IntrinsicSize.Max)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .width(IntrinsicSize.Min),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                DropMenu()
-                Spacer(modifier = Modifier.height(8.dp))
+                DropMenu(state = state)
                 TextField(
                     placeholder = {
                         Text(
@@ -75,52 +80,48 @@ fun BottomSheet(
                         Text(text = "Descrição")
                     },
                     textStyle = MaterialTheme.typography.titleLarge,
-                    value = viewModel.descricao.value,
-                    onValueChange = { newDesc ->
-                        viewModel.changeDesc(newDesc)
-                        viewModel.body = newDesc
+                    value = state.body,
+                    onValueChange = { newBody ->
+                        viewModel.onEvent(NotificationEvent.SetBody(newBody))
                     },
                 )
-                Spacer(modifier = Modifier.height(8.dp))
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.End
+                    horizontalArrangement = Arrangement.Center
                 ) {
-                    Card {
-                        Text(
-                            text = "Horário: ${
-                                viewModel.hora.toString().padStart(2, '0')
-                            }:${viewModel.minuto.toString().padStart(2, '0')}",
-                            modifier = Modifier
-                                .padding(8.dp),
-                            fontSize = 18.sp
-                        )
-                    }
-                    Spacer(modifier = Modifier.weight(1f))
-                    Button(
+                    TextField(
+                        modifier = Modifier.width(120.dp),
+                        value = state.time,
+                        onValueChange = {},
+                        readOnly = true,
+                        placeholder = {
+                            Text(
+                                text = "Horário",
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        },
+                        label = {
+                            Text(text = "Horário")
+                        },
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    IconButton(
                         onClick = {
                             viewModel.pickerState()
                         }) {
                         Icon(
                             painter = painterResource(id = R.drawable.outline_alarm_24),
-                            contentDescription = null
+                            contentDescription = null,
+                            modifier = Modifier.size(30.dp)
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 Row {
                     Spacer(modifier = Modifier.weight(1f))
                     TextButton(onClick = {
-                        viewModel.clearFields()
-                        scope.launch {
-                            sheetState.hide()
-                        }.invokeOnCompletion {
-                            if (!sheetState.isVisible) {
-                                onDismiss()
-                            }
-                        }
+                        viewModel.onEvent(NotificationEvent.ClearTextFields)
                     }) {
                         Text(
                             text = "CANCELAR",
@@ -128,36 +129,17 @@ fun BottomSheet(
                             fontWeight = FontWeight.Bold
                         )
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
                     TextButton(onClick = {
-                        when {
-                            viewModel.titulo.value.isEmpty() -> {
-                                Toast.makeText(context, "Preencha o Título", Toast.LENGTH_SHORT)
-                                    .show()
-                                return@TextButton
-                            }
-                            viewModel.descricao.value.isEmpty() -> {
-                                Toast.makeText(context, "Preencha a Descrição", Toast.LENGTH_SHORT)
-                                    .show()
-                                return@TextButton
-                            }
-                            else -> {
-                                viewModel.setAlarm()
-                                Toast.makeText(context, "Alarme Definido!!", Toast.LENGTH_SHORT).show()
-                                viewModel.changeTitulo("")
-                                viewModel.changeDesc("")
-                                scope.launch {
-                                    sheetState.hide()
-                                }.invokeOnCompletion {
-                                    if (!sheetState.isVisible) {
-                                        onDismiss()
-                                    }
-                                }
-                            }
-                        }
+//                                viewModel.setAlarm()
+                        viewModel.onEvent(NotificationEvent.SaveNotification)
+                        Toast.makeText(
+                            context,
+                            state.title,
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }) {
                         Text(
-                            text = "OK",
+                            text = "SALVAR",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -170,8 +152,15 @@ fun BottomSheet(
                 onDismiss = { viewModel.isPickerOpen = false },
                 onConfirm = {
                     viewModel.isPickerOpen = false
+                    calendar.set(Calendar.HOUR_OF_DAY, it.hour)
+                    calendar.set(Calendar.MINUTE, it.minute)
                     viewModel.hora = it.hour
                     viewModel.minuto = it.minute
+                    viewModel.onEvent(
+                        NotificationEvent.SetTime(
+                            formatter.format(calendar.time)
+                        )
+                    )
                 }
             )
         }

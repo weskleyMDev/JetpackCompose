@@ -16,7 +16,9 @@ import com.weskley.hdc_app.screen.ProfileScreen
 const val MY_URI = "https://weskley.com"
 
 @Composable
-fun NavGraphController(navController: NavHostController) {
+fun NavGraphController(
+    navController: NavHostController,
+) {
     NavHost(
         navController = navController,
         startDestination = ScreenController.Home.route

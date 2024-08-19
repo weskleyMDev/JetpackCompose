@@ -2,6 +2,9 @@ package com.weskley.hdc_app.module
 
 import android.app.AlarmManager
 import android.content.Context
+import androidx.room.Room
+import com.weskley.hdc_app.dao.NotificationDao
+import com.weskley.hdc_app.database.CustomNotificationDb
 import com.weskley.hdc_app.service.NotificationService
 import com.weskley.hdc_app.service.imp.NotificationServiceImp
 import dagger.Module
@@ -33,6 +36,27 @@ object AlarmModule {
     ): AlarmManager {
         return context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     }
+
+    @Provides
+    @Singleton
+    fun provideDatabase(
+        @ApplicationContext context: Context
+    ): CustomNotificationDb {
+        return Room.databaseBuilder(
+            context,
+            CustomNotificationDb::class.java,
+            CustomNotificationDb.DATABASE_NAME
+        ).build()
+    }
+
+    @Provides
+    @Singleton
+    @DatabaseDao
+    fun provideNotificationDao(
+        db: CustomNotificationDb
+    ): NotificationDao {
+        return db.notificationDao
+    }
 }
 
 @Qualifier
@@ -42,3 +66,7 @@ annotation class Notification
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class Manager
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class DatabaseDao

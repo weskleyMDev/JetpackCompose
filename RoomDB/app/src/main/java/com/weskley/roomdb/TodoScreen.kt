@@ -1,5 +1,6 @@
 package com.weskley.roomdb
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 
@@ -36,16 +38,19 @@ fun TodoScreen(
     state: TodoState,
     viewModel: TodoViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current.applicationContext
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         floatingActionButton = {
             FloatingActionButton(onClick = {
                 viewModel.onEvent(TodoEvent.ShowDialog)
+                Toast.makeText(context, "${state.isDialogOpen}", Toast.LENGTH_SHORT).show()
             }) {
                 Icon(imageVector = Icons.Default.Add, contentDescription = "Add Todo")
             }
         }
     ) { paddingValues ->
+        Text(text = "${state.isDialogOpen}")
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
