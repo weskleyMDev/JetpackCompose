@@ -18,8 +18,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -105,6 +107,17 @@ fun AlarmScreen(
                                 .size(80.dp)
                                 .clip(CircleShape)
                         )
+                        Spacer(modifier = Modifier.width(14.dp))
+                        IconButton(onClick = {
+                            viewModel.onEvent(NotificationEvent.DeleteNotification(item.id))
+                        }) {
+                            Icon(
+                                modifier = Modifier.size(36.dp),
+                                imageVector = Icons.TwoTone.Delete,
+                                contentDescription = null,
+                                tint = Color.Red
+                            )
+                        }
                     }
                 }
             }
