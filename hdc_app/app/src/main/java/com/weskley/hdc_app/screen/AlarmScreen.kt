@@ -81,7 +81,9 @@ fun AlarmScreen(
                             )
                         }
                     } else {
-                        viewModel.cancelAlarm(item.id)
+                        scope.launch {
+                            viewModel.cancelAlarm(item.id)
+                        }
                     }
                 }
                 Box(
@@ -139,9 +141,11 @@ fun AlarmScreen(
                         Column {
                             IconButton(
                                 onClick = {
-                                viewModel.cancelAlarm(item.id)
-                                viewModel.onEvent(NotificationEvent.DeleteNotification(item.id))
-                            }) {
+                                    scope.launch {
+                                        viewModel.cancelAlarm(item.id)
+                                    }
+                                    viewModel.onEvent(NotificationEvent.DeleteNotification(item.id))
+                                }) {
                                 Icon(
                                     modifier = Modifier.size(28.dp),
                                     imageVector = Icons.TwoTone.Cancel,

@@ -10,4 +10,5 @@ data class NotificationState(
     val image: Int = 0,
     val active: Boolean = false,
     val isOpened: Boolean = false,
+    val showAlert: Boolean = false
 )

@@ -5,6 +5,8 @@ sealed interface NotificationEvent {
     data object ShowBottomSheet: NotificationEvent
     data object HideBottomSheet: NotificationEvent
     data object ClearTextFields: NotificationEvent
+    data object ShowAlert: NotificationEvent
+
     data class SetTitle(val title: String): NotificationEvent
     data class SetBody(val body: String): NotificationEvent
     data class SetTime(val time: String): NotificationEvent

@@ -12,8 +12,8 @@ import androidx.compose.ui.res.painterResource
 fun CustomAlert(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
-    title: String,
-    text: String,
+    title: @Composable () -> Unit,
+    text: @Composable (() -> Unit)? = null,
     icon: Int
 ) {
     AlertDialog(
@@ -24,18 +24,14 @@ fun CustomAlert(
                 tint = Color.Red
             )
         },
-        title = {
-            Text(text = title)
-        },
-        text = {
-            Text(text = text)
-        },
+        title = title,
+        text = text,
         onDismissRequest = { onDismiss() },
         confirmButton = {
             TextButton(
                 onClick = { onConfirm() }
             ) {
-                Text(text = "Enviar")
+                Text(text = "OK")
             }
         },
         dismissButton = {

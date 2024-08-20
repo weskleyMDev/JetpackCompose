@@ -33,8 +33,8 @@ fun Feedback(argument: String) {
                     openDialog.value = false
                     text.value = "FEEDBACK ENVIADO COM SUCESSO!"
                 },
-                title = argument,
-                text = "CORPO DO QUESTIONARIO",
+                title = { Text(text = argument) },
+                text = { Text("CORPO DO QUESTIONARIO") },
                 icon = R.drawable.outline_release_alert_24
             )
         }

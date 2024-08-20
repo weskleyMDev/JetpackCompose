@@ -148,6 +148,14 @@ class AlarmViewModel @Inject constructor(
                     database.updateActive(event.active, event.id)
                 }
             }
+
+            NotificationEvent.ShowAlert -> {
+                _state.update {
+                    it.copy(
+                        showAlert = !it.showAlert
+                    )
+                }
+            }
         }
     }
 
