@@ -161,6 +161,8 @@ class AlarmViewModel @Inject constructor(
 
     var selected = mutableIntStateOf(0)
     var isPickerOpen by mutableStateOf(false)
+    private val _feedback = mutableStateOf("")
+    val feedback get() = _feedback
 
     fun pickerState() {
         isPickerOpen = !isPickerOpen
