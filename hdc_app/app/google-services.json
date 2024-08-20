@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "673436010127",
+    "project_id": "hdcapp-a7065",
+    "storage_bucket": "hdcapp-a7065.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:673436010127:android:fc611556de0583097d52fa",
+        "android_client_info": {
+          "package_name": "com.weskley.hdc_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDqxqASdkb8EiY0ZndBCOGWG1T0BLQR2Bk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
