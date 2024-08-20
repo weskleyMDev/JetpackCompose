@@ -9,6 +9,7 @@ data class CustomNotification(
     val body: String,
     val time: String,
     val image: Int,
+    val active: Boolean = false,
 
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0

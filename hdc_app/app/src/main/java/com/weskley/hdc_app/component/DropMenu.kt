@@ -6,6 +6,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -15,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.weskley.hdc_app.R
 import com.weskley.hdc_app.state.NotificationEvent
@@ -46,13 +48,23 @@ fun DropMenu(
         ) {
             TextField(
                 modifier = Modifier.menuAnchor(),
+                textStyle = MaterialTheme.typography.bodyLarge,
                 value = state.title,
                 onValueChange = {
                     viewModel.onEvent(NotificationEvent.SetTitle(it))
                 },
+                minLines = 1,
+                maxLines = 2,
                 placeholder = { Text(text = "Selecione ou digite")},
                 label = { Text(text = "Medicamento") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
+                supportingText = {
+                    Text(
+                        text = "${state.body.length} / 50",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.End
+                    )
+                }
             )
             if (state.title == "") {
                 ExposedDropdownMenu(

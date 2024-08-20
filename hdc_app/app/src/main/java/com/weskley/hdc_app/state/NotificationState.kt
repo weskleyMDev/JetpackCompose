@@ -8,5 +8,6 @@ data class NotificationState(
     val body: String = "",
     val time: String = "",
     val image: Int = 0,
-    val isOpened: Boolean = false
+    val active: Boolean = false,
+    val isOpened: Boolean = false,
 )

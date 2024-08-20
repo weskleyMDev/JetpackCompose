@@ -10,10 +10,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.weskley.hdc_app.R
 import com.weskley.hdc_app.dao.NotificationDao
 import com.weskley.hdc_app.model.CustomNotification
-import com.weskley.hdc_app.model.InputModel
 import com.weskley.hdc_app.module.DatabaseDao
 import com.weskley.hdc_app.module.Manager
 import com.weskley.hdc_app.receiver.NotificationReceiver
@@ -34,12 +32,12 @@ import javax.inject.Inject
 @HiltViewModel
 class AlarmViewModel @Inject constructor(
     @Manager private val manager: AlarmManager,
-    private val inputModel: InputModel,
     @DatabaseDao private val database: NotificationDao,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
-    private val _notifications = database.findAll().stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
+    private val _notifications =
+        database.findAll().stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
     private val _state = MutableStateFlow(NotificationState())
     val state = combine(_state, _notifications) { state, notifications ->
         state.copy(
@@ -54,6 +52,7 @@ class AlarmViewModel @Inject constructor(
                     database.deleteNotification(event.id)
                 }
             }
+
             NotificationEvent.HideBottomSheet -> {
                 _state.update {
                     it.copy(
@@ -61,13 +60,14 @@ class AlarmViewModel @Inject constructor(
                     )
                 }
             }
+
             NotificationEvent.SaveNotification -> {
                 val title = state.value.title.trim()
                 val body = state.value.body.trim()
                 val time = state.value.time
                 val image = state.value.image
 
-                if (title.isBlank() || body.isBlank() || time.isBlank() || image == 0) {
+                if (title.isBlank() || body.isBlank() || time.isBlank()) {
                     return
                 }
 
@@ -75,10 +75,10 @@ class AlarmViewModel @Inject constructor(
                     title = title,
                     body = body,
                     time = time,
-                    image = image
+                    image = image,
                 )
                 viewModelScope.launch(Dispatchers.IO) {
-                    database.upsertNotification(notification)
+                    database.insertNotification(notification)
                 }
                 _state.update {
                     it.copy(
@@ -86,10 +86,11 @@ class AlarmViewModel @Inject constructor(
                         title = "",
                         body = "",
                         time = "",
-                        image = 0
+                        image = 0,
                     )
                 }
             }
+
             is NotificationEvent.SetBody -> {
                 _state.update {
                     it.copy(
@@ -97,6 +98,7 @@ class AlarmViewModel @Inject constructor(
                     )
                 }
             }
+
             is NotificationEvent.SetTime -> {
                 _state.update {
                     it.copy(
@@ -104,6 +106,7 @@ class AlarmViewModel @Inject constructor(
                     )
                 }
             }
+
             is NotificationEvent.SetTitle -> {
                 _state.update {
                     it.copy(
@@ -111,6 +114,7 @@ class AlarmViewModel @Inject constructor(
                     )
                 }
             }
+
             NotificationEvent.ShowBottomSheet -> {
                 _state.update {
                     it.copy(
@@ -118,6 +122,7 @@ class AlarmViewModel @Inject constructor(
                     )
                 }
             }
+
             is NotificationEvent.SetImage -> {
                 _state.update {
                     it.copy(
@@ -137,59 +142,51 @@ class AlarmViewModel @Inject constructor(
                     )
                 }
             }
+
+            is NotificationEvent.SetActive -> {
+                viewModelScope.launch(Dispatchers.IO) {
+                    database.updateActive(event.active, event.id)
+                }
+            }
         }
     }
 
     var selected = mutableIntStateOf(0)
-    var myImage by mutableIntStateOf(R.drawable.logo_circ_branco)
-    var hora by mutableIntStateOf(0)
-    var minuto by mutableIntStateOf(0)
     var isPickerOpen by mutableStateOf(false)
-    var titulo = mutableStateOf(inputModel.titulo)
-    var descricao = mutableStateOf(inputModel.descricao)
-    var label by mutableStateOf("")
-    var body by mutableStateOf("")
 
     fun pickerState() {
         isPickerOpen = !isPickerOpen
     }
 
-    fun changeDesc(newDesc: String) {
-        inputModel.descricao = newDesc
-        descricao.value = newDesc
-    }
-    fun changeTitulo(newTitulo: String) {
-        inputModel.titulo = newTitulo
-        titulo.value = newTitulo
-    }
-
-    fun clearFields() {
-        changeTitulo("")
-        changeDesc("")
-        hora = 0
-        minuto = 0
-        label = ""
-        body = ""
-        myImage = R.drawable.logo_circ_branco
-    }
-
-    fun setAlarm() {
+    fun setAlarm(id: Int, title: String, body: String, image: Int, hour: Int, minute: Int) {
         val time = Calendar.getInstance().apply {
             timeInMillis = System.currentTimeMillis()
-            set(Calendar.HOUR_OF_DAY, hora)
-            set(Calendar.MINUTE, minuto)
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, minute)
         }
         val alarmIntent = Intent(context, NotificationReceiver::class.java).apply {
-            putExtra("title", titulo.value)
-            putExtra("text", descricao.value)
-            putExtra("img", myImage)
+            putExtra("title", title)
+            putExtra("text", body)
+            putExtra("img", image)
         }
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            0,
+            id,
             alarmIntent,
             PendingIntent.FLAG_IMMUTABLE
         )
         manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time.timeInMillis, pendingIntent)
+    }
+
+    fun cancelAlarm(id: Int) {
+        val pendingIntent = Intent(context, NotificationReceiver::class.java).let { intent ->
+            PendingIntent.getBroadcast(
+                context,
+                id,
+                intent,
+                PendingIntent.FLAG_IMMUTABLE
+            )
+        }
+        manager.cancel(pendingIntent)
     }
 }
