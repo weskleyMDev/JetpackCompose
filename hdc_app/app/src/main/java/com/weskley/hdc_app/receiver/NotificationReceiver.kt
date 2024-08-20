@@ -9,7 +9,7 @@ import android.content.Intent
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -51,7 +51,8 @@ private fun showNotification(context: Context, title: String, text: String, imag
         }
     }
 
-    val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+//    val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+    val soundUri = Uri.parse("android.resource://com.weskley.hdc_app/" + R.raw.new_iphone)
 
     val notification = NotificationCompat.Builder(context, Constants.CHANNEL_ID)
         .setSmallIcon(R.drawable.logo_circ_branco)
@@ -66,7 +67,7 @@ private fun showNotification(context: Context, title: String, text: String, imag
                 .bigLargeIcon(null as Bitmap?)
         )
         .setContentIntent(clickIntent)
-        .setVibrate(longArrayOf(0, 500, 1000))
+        .setVibrate(longArrayOf(0, 1000, 500, 1000))
         .setSound(soundUri)
         .setAutoCancel(true)
 

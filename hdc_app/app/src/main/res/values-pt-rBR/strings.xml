@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">hdc_app</string>
+    <string name="app_name">HDC</string>
     <string name="app_title">Hora de Cuidar</string>
     <string name="menu">Menu</string>
     <string name="picker_title">Selecionar Horário</string>

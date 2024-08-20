@@ -51,7 +51,7 @@ fun DropMenu(
                 textStyle = MaterialTheme.typography.bodyLarge,
                 value = state.title,
                 onValueChange = {
-                    viewModel.onEvent(NotificationEvent.SetTitle(it))
+                    if (it.length <= 50) viewModel.onEvent(NotificationEvent.SetTitle(it))
                 },
                 minLines = 1,
                 maxLines = 2,
@@ -60,7 +60,7 @@ fun DropMenu(
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
                 supportingText = {
                     Text(
-                        text = "${state.body.length} / 50",
+                        text = "${state.title.length} / 50",
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.End
                     )
