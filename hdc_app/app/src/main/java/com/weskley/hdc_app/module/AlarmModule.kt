@@ -1,6 +1,7 @@
 package com.weskley.hdc_app.module
 
 import android.app.AlarmManager
+import android.app.NotificationManager
 import android.content.Context
 import androidx.room.Room
 import com.weskley.hdc_app.dao.NotificationDao
@@ -12,7 +13,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Qualifier
 import javax.inject.Singleton
 
 @Module
@@ -21,20 +21,28 @@ object AlarmModule {
 
     @Provides
     @Singleton
-    @Notification
-    fun provideService(
-        @ApplicationContext context: Context
-    ): NotificationService {
-        return NotificationServiceImp(context)
-    }
-
-    @Provides
-    @Singleton
-    @Manager
     fun provideAlarmManager(
         @ApplicationContext context: Context
     ): AlarmManager {
         return context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    }
+
+    @Provides
+    @Singleton
+    fun provideNotificationManager(
+        @ApplicationContext context: Context,
+    ) : NotificationManager {
+        return context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    }
+
+    @Provides
+    @Singleton
+    fun provideService(
+        @ApplicationContext context: Context,
+        alarmManager: AlarmManager,
+        notificationManager: NotificationManager
+    ): NotificationService {
+        return NotificationServiceImp(context, alarmManager, notificationManager)
     }
 
     @Provides
@@ -51,7 +59,6 @@ object AlarmModule {
 
     @Provides
     @Singleton
-    @DatabaseDao
     fun provideNotificationDao(
         db: CustomNotificationDb
     ): NotificationDao {
@@ -59,14 +66,6 @@ object AlarmModule {
     }
 }
 
-@Qualifier
+/*@Qualifier
 @Retention(AnnotationRetention.BINARY)
-annotation class Notification
-
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class Manager
-
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class DatabaseDao
+annotation class DatabaseDao*/

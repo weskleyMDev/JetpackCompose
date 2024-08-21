@@ -1,34 +1,7 @@
 package com.weskley.hdc_app.service
 
-import android.app.NotificationManager
-import android.content.Context
-import android.graphics.Bitmap
-import androidx.core.app.NotificationCompat
-
 interface NotificationService {
-    fun createChannel(
-        id: String,
-        name: String,
-        description: String,
-        importance: Int
-    ): NotificationManager
-
-    fun createNotification(
-        channelId: String,
-        arg: String,
-        icon: Int,
-        title: String,
-        text: String,
-        priority: Int,
-        image: Bitmap? = null,
-        style: NotificationCompat.Style? = null,
-        cancel: Boolean = true,
-    ): NotificationCompat.Builder
-
-    fun scheduleNotification(
-        context: Context, hour: Int, minute: Int,
-        title: String?,
-        text: String?,
-        img: Int?
-    )
+    fun createNotification(title: String, body: String, image: Int)
+    fun setAlarm(id: Int, title: String, body: String, image: Int, hour: Int, minute: Int)
+    fun cancelAlarm(id: Int)
 }

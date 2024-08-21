@@ -17,16 +17,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.weskley.hdc_app.component.CustomAlert
-import com.weskley.hdc_app.viewmodel.AlarmViewModel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @Composable
 fun Feedback(
-    argument: String,
-    viewModel: AlarmViewModel = hiltViewModel()
+    argument: String
 ) {
     var timeNow by remember {
         mutableStateOf("")

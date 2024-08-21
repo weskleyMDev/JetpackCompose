@@ -1,106 +1,110 @@
 package com.weskley.hdc_app.service.imp
 
 import android.app.AlarmManager
-import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.TaskStackBuilder
 import android.content.Context
-import android.content.Context.ALARM_SERVICE
 import android.content.Intent
+import android.content.res.Resources
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import com.weskley.hdc_app.MainActivity
+import com.weskley.hdc_app.R
+import com.weskley.hdc_app.constant.Constants
 import com.weskley.hdc_app.controller.ARG
 import com.weskley.hdc_app.controller.MY_URI
 import com.weskley.hdc_app.receiver.NotificationReceiver
 import com.weskley.hdc_app.service.NotificationService
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.Calendar
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class NotificationServiceImp(
-    private val context: Context
+@Singleton
+class NotificationServiceImp @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val alarmManager: AlarmManager,
+    private val notificationManager: NotificationManager
 ): NotificationService {
 
-    override fun createChannel(
-        id: String,
-        name: String,
-        description: String,
-        importance: Int
-    ): NotificationManager {
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                id,
-                name,
-                importance
-            )
-            channel.description = description
-            notificationManager.createNotificationChannel(channel)
-        }
-        return notificationManager
-    }
-
     override fun createNotification(
-        channelId: String,
-        arg: String,
-        icon: Int,
-        title: String,
-        text: String,
-        priority: Int,
-        image: Bitmap?,
-        style: NotificationCompat.Style?,
-        cancel: Boolean,
-    ): NotificationCompat.Builder {
+        title: String, body: String, image: Int
+    ) {
+        val flag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) PendingIntent.FLAG_IMMUTABLE else 0
+
         val clickIntent = Intent(
             Intent.ACTION_VIEW,
-            "$MY_URI/$ARG=$arg".toUri(),
+            "$MY_URI/$ARG=$title".toUri(),
             context,
             MainActivity::class.java
         ).let { intent ->
             TaskStackBuilder.create(context).run {
                 addNextIntentWithParentStack(intent)
-                getPendingIntent(0, PendingIntent.FLAG_IMMUTABLE)
+                getPendingIntent(Constants.PENDING_CODE, flag)
             }
         }
-        return NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(icon)
+
+        val soundUri = Uri.parse("android.resource://com.weskley.hdc_app/" + R.raw.new_iphone)
+
+        val notification = NotificationCompat.Builder(context, Constants.CHANNEL_ID)
+            .setSmallIcon(R.drawable.logo_circ_branco)
             .setContentTitle(title)
-            .setContentText(text)
-            .setPriority(priority)
-            .setLargeIcon(image)
-            .setStyle(style)
+            .setContentText(body)
+            .setPriority(Constants.HIGH_PRIORITY)
+            .setLargeIcon(selectImage(context.resources, image))
+            .setStyle(
+                NotificationCompat
+                    .BigPictureStyle()
+                    .bigPicture(selectImage(context.resources, image))
+                    .bigLargeIcon(null as Bitmap?)
+            )
             .setContentIntent(clickIntent)
-            .setAutoCancel(cancel)
+            .setVibrate(longArrayOf(0, 1000, 500, 1000))
+            .setSound(soundUri)
+            .setAutoCancel(true)
+
+        notificationManager.notify(Constants.REQUEST_CODE, notification.build())
     }
 
-    override fun scheduleNotification(
-        context: Context,
-        hour: Int,
-        minute: Int,
-        title: String?,
-        text: String?,
-        img: Int?
-    ) {
+    override fun setAlarm(id: Int, title: String, body: String, image: Int, hour: Int, minute: Int) {
         val time = Calendar.getInstance().apply {
             timeInMillis = System.currentTimeMillis()
             set(Calendar.HOUR_OF_DAY, hour)
             set(Calendar.MINUTE, minute)
         }
-        val alarmManager = context.getSystemService(ALARM_SERVICE) as AlarmManager
         val alarmIntent = Intent(context, NotificationReceiver::class.java).apply {
             putExtra("title", title)
-            putExtra("text", text)
-            putExtra("img", img)
+            putExtra("text", body)
+            putExtra("img", image)
         }
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            0,
+            id,
             alarmIntent,
             PendingIntent.FLAG_IMMUTABLE
         )
         alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time.timeInMillis, pendingIntent)
     }
+
+    override fun cancelAlarm(id: Int) {
+        val pendingIntent = Intent(context, NotificationReceiver::class.java).let { intent ->
+            PendingIntent.getBroadcast(
+                context,
+                id,
+                intent,
+                PendingIntent.FLAG_IMMUTABLE
+            )
+        }
+        alarmManager.cancel(pendingIntent)
+    }
+
+}
+
+private fun selectImage(resource: Resources, image: Int): Bitmap {
+    return BitmapFactory.decodeResource(resource, image)
 }
