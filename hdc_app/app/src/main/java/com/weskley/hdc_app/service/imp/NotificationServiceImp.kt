@@ -80,8 +80,8 @@ class NotificationServiceImp @Inject constructor(
             .setStyle(
                 NotificationCompat
                     .InboxStyle()
-                    .setSummaryText(Constants.SUMMARY_GROUP_TEXT)
                     .setBigContentTitle(Constants.SUMMARY_GROUP_TITLE)
+                    .setSummaryText(Constants.SUMMARY_GROUP_TEXT)
             )
             .setGroup(Constants.GROUP_KEY)
             .setAutoCancel(true)
