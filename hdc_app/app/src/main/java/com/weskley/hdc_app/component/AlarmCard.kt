@@ -38,7 +38,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.weskley.hdc_app.model.CustomNotification
 import com.weskley.hdc_app.ui.theme.Blue
@@ -229,20 +228,4 @@ fun AlarmCArd(
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun AlarmCardPreview() {
-    AlarmCArd(
-        item = CustomNotification(
-            title = "teste",
-            body = "teste",
-            time = "12:00",
-            active = true,
-            image = 0
-        ),
-        onSwitchOn = {},
-        onDelete = {}
-    )
 }
