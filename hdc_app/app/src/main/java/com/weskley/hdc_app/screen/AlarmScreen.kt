@@ -13,7 +13,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -23,14 +22,12 @@ import com.weskley.hdc_app.component.BottomSheet
 import com.weskley.hdc_app.model.CustomNotification
 import com.weskley.hdc_app.state.NotificationEvent
 import com.weskley.hdc_app.viewmodel.AlarmViewModel
-import kotlinx.coroutines.launch
 
 @Composable
 fun AlarmScreen(
     viewModel: AlarmViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    val scope = rememberCoroutineScope()
     if (state.isOpened) {
         BottomSheet(
             onDismiss = { viewModel.onEvent(NotificationEvent.HideBottomSheet) }
@@ -39,7 +36,6 @@ fun AlarmScreen(
     fun onSwitchOn(isChecked: Boolean, item: CustomNotification) {
         viewModel.onEvent(NotificationEvent.SetActive(isChecked, item.id))
         if (isChecked) {
-            scope.launch {
                 viewModel.setAlarm(
                     item.id,
                     item.title,
@@ -48,11 +44,8 @@ fun AlarmScreen(
                     item.time.split(":")[0].toInt(),
                     item.time.split(":")[1].toInt()
                 )
-            }
         } else {
-            scope.launch {
                 viewModel.cancelAlarm(item.id)
-            }
         }
     }
     Column(
@@ -71,9 +64,7 @@ fun AlarmScreen(
                     onSwitchOn(it, item)
                 },
                     onDelete = {
-                        scope.launch {
                             viewModel.cancelAlarm(item.id)
-                        }
                         viewModel.onEvent(NotificationEvent.DeleteNotification(item.id))
                     },
                 )

@@ -24,6 +24,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.Calendar
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.random.Random
 
 @Singleton
 class NotificationServiceImp @Inject constructor(
@@ -66,9 +67,29 @@ class NotificationServiceImp @Inject constructor(
             .setContentIntent(clickIntent)
             .setVibrate(longArrayOf(0, 1000, 500, 1000))
             .setSound(soundUri)
+            .addAction(0, "CONFIRMAR", null)
+            .addAction(0, "FEEDBACK", clickIntent)
+            .setGroup(Constants.GROUP_KEY)
             .setAutoCancel(true)
 
-        notificationManager.notify(Constants.REQUEST_CODE, notification.build())
+        val summaryNotification = NotificationCompat.Builder(context, Constants.CHANNEL_ID)
+            .setSmallIcon(R.drawable.logo_circ_branco)
+            .setContentTitle(Constants.SUMMARY_TITLE)
+            .setContentText(Constants.SUMMARY_TEXT)
+            .setPriority(Constants.HIGH_PRIORITY)
+            .setStyle(
+                NotificationCompat
+                    .InboxStyle()
+                    .setSummaryText(Constants.SUMMARY_GROUP_TEXT)
+                    .setBigContentTitle(Constants.SUMMARY_GROUP_TITLE)
+            )
+            .setGroup(Constants.GROUP_KEY)
+            .setAutoCancel(true)
+            .setGroupSummary(true)
+
+        notificationManager.notify(Random.nextInt(), notification.build())
+        notificationManager.notify(Constants.REQUEST_CODE, summaryNotification.build())
+
     }
 
     override fun setAlarm(id: Int, title: String, body: String, image: Int, hour: Int, minute: Int) {

@@ -14,6 +14,11 @@ object Constants {
     const val CHANNEL_DESCRIPTION = "channel_description"
     const val HIGH_IMPORTANCE = NotificationManager.IMPORTANCE_HIGH
     const val HIGH_PRIORITY = NotificationCompat.PRIORITY_HIGH
-    const val REQUEST_CODE = 100
+    const val REQUEST_CODE = 1000
     const val PENDING_CODE = 1
+    const val GROUP_KEY = "hdc_group"
+    const val SUMMARY_TITLE = "HDC"
+    const val SUMMARY_TEXT = "Hora de Cuidar"
+    const val SUMMARY_GROUP_TITLE = "HDC"
+    const val SUMMARY_GROUP_TEXT = "Notificações perdidas"
 }

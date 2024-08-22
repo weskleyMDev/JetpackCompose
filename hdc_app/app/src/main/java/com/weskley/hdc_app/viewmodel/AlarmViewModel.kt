@@ -161,13 +161,13 @@ class AlarmViewModel @Inject constructor(
     }
 
     fun setAlarm(id: Int, title: String, body: String, image: Int, hour: Int, minute: Int) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             service.setAlarm(id, title, body, image, hour, minute)
         }
     }
 
     fun cancelAlarm(id: Int) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             service.cancelAlarm(id)
         }
     }
