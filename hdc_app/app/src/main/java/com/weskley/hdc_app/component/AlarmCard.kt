@@ -7,17 +7,17 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.twotone.ArrowDropDown
 import androidx.compose.material.icons.twotone.Delete
+import androidx.compose.material.icons.twotone.KeyboardDoubleArrowDown
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -32,14 +32,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.weskley.hdc_app.model.CustomNotification
+import com.weskley.hdc_app.ui.theme.Blue
 import com.weskley.hdc_app.ui.theme.DarkBlue
+import com.weskley.hdc_app.ui.theme.LightBlue
 
 
 @Composable
@@ -70,7 +74,11 @@ fun AlarmCArd(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(18.dp))
-                    .background(Color.LightGray)
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(Blue, LightBlue)
+                        )
+                    )
                     .graphicsLayer {
                         if (rotation < 90f) {
                             alpha = 0f
@@ -92,36 +100,46 @@ fun AlarmCArd(
                             .size(80.dp)
                             .clip(CircleShape)
                     )
-                    Text(
-                        text = item.body,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = DarkBlue,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                    Box(
                         modifier = Modifier
-                            .weight(1f),
-                    )
-                    Column {
-                        IconButton(onClick = { flipped = !flipped }) {
+                            .weight(1f)
+                            .height(80.dp)
+                    ) {
+                        IconButton(
+                            onClick = { flipped = !flipped },
+                            modifier = Modifier
+                                .size(18.dp)
+                                .align(Alignment.TopCenter),
+                        ) {
                             Icon(
-                                imageVector = Icons.TwoTone.ArrowDropDown,
+                                imageVector = Icons.TwoTone.KeyboardDoubleArrowDown,
                                 contentDescription = null,
-                                modifier = Modifier.size(30.dp),
-                                tint = DarkBlue
+                                tint = DarkBlue,
                             )
                         }
-                        IconButton(onClick = {
-                            onDelete()
-                            flipped = !flipped
-                        }) {
-                            Icon(
-                                modifier = Modifier.size(36.dp),
-                                imageVector = Icons.TwoTone.Delete,
-                                contentDescription = null,
-                                tint = Color.Red
-                            )
-                        }
+                        Text(
+                            text = item.body,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = DarkBlue,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier
+                                .align(Alignment.CenterStart)
+                        )
                     }
+                    IconButton(onClick = {
+                        onDelete()
+                        flipped = !flipped
+                    }) {
+                        Icon(
+                            modifier = Modifier.size(36.dp),
+                            imageVector = Icons.TwoTone.Delete,
+                            contentDescription = null,
+                            tint = Color.Red
+                        )
+                    }
+
                 }
             }
         } else {
@@ -130,7 +148,11 @@ fun AlarmCArd(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(18.dp))
-                    .background(Color.LightGray)
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(LightBlue, Blue)
+                        )
+                    )
                     .graphicsLayer {
                         if (rotation > 90f) {
                             alpha = 0f
@@ -157,44 +179,70 @@ fun AlarmCArd(
                             fontWeight = FontWeight.Bold
                         )
                     }
-                    Text(
-                        text = item.title,
-                        style = MaterialTheme.typography.titleLarge,
-                        color = DarkBlue,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Column {
-                        IconButton(onClick = { flipped = !flipped }) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(80.dp)
+                    ) {
+                        IconButton(
+                            onClick = { flipped = !flipped },
+                            modifier = Modifier
+                                .size(18.dp)
+                                .align(Alignment.TopCenter)
+                        ) {
                             Icon(
-                                imageVector = Icons.TwoTone.ArrowDropDown,
+                                imageVector = Icons.TwoTone.KeyboardDoubleArrowDown,
                                 contentDescription = null,
-                                modifier = Modifier.size(30.dp),
-                                tint = DarkBlue
+                                tint = DarkBlue,
                             )
                         }
-                        Switch(
-                            checked = item.active,
-                            onCheckedChange = {
-                                onSwitchOn(it)
-                            },
-                            thumbContent = if (item.active) {
-                                {
-                                    Icon(
-                                        modifier = Modifier.size(SwitchDefaults.IconSize),
-                                        imageVector = Icons.Filled.Check,
-                                        contentDescription = null,
-                                        tint = Color.Green
-                                    )
-                                }
-                            } else {
-                                null
-                            },
+                        Text(
+                            text = item.title,
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleLarge,
+                            color = DarkBlue,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier
+                                .align(Alignment.CenterStart)
                         )
                     }
+                    Switch(
+                        checked = item.active,
+                        onCheckedChange = {
+                            onSwitchOn(it)
+                        },
+                        thumbContent = if (item.active) {
+                            {
+                                Icon(
+                                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                                    imageVector = Icons.Filled.Check,
+                                    contentDescription = null,
+                                    tint = Color.Green
+                                )
+                            }
+                        } else {
+                            null
+                        },
+                    )
                 }
             }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AlarmCardPreview() {
+    AlarmCArd(
+        item = CustomNotification(
+            title = "teste",
+            body = "teste",
+            time = "12:00",
+            active = true,
+            image = 0
+        ),
+        onSwitchOn = {},
+        onDelete = {}
+    )
 }
