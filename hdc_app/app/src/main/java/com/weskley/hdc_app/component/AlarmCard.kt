@@ -15,9 +15,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.KeyboardDoubleArrowDown
+import androidx.compose.material.icons.twotone.NotificationsActive
+import androidx.compose.material.icons.twotone.NotificationsOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,6 +44,7 @@ import com.weskley.hdc_app.model.CustomNotification
 import com.weskley.hdc_app.ui.theme.Blue
 import com.weskley.hdc_app.ui.theme.DarkBlue
 import com.weskley.hdc_app.ui.theme.LightBlue
+import com.weskley.hdc_app.ui.theme.Turquoise
 
 
 @Composable
@@ -149,7 +151,7 @@ fun AlarmCArd(
                     .clip(RoundedCornerShape(18.dp))
                     .background(
                         Brush.horizontalGradient(
-                            colors = listOf(LightBlue, Blue)
+                            colors = listOf(LightBlue, Turquoise)
                         )
                     )
                     .graphicsLayer {
@@ -211,17 +213,26 @@ fun AlarmCArd(
                         onCheckedChange = {
                             onSwitchOn(it)
                         },
+                        colors = SwitchDefaults.colors(
+                            checkedTrackColor = DarkBlue,
+                        ),
                         thumbContent = if (item.active) {
                             {
                                 Icon(
-                                    modifier = Modifier.size(SwitchDefaults.IconSize),
-                                    imageVector = Icons.Filled.Check,
+                                    modifier = Modifier.size(36.dp),
+                                    imageVector = Icons.TwoTone.NotificationsActive,
                                     contentDescription = null,
                                     tint = Color.Green
                                 )
                             }
                         } else {
-                            null
+                            {
+                                Icon(
+                                    modifier = Modifier.size(36.dp),
+                                    imageVector = Icons.TwoTone.NotificationsOff,
+                                    contentDescription = null,
+                                )
+                            }
                         },
                     )
                 }

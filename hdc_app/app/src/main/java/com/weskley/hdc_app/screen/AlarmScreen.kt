@@ -20,6 +20,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,12 +35,14 @@ import com.weskley.hdc_app.state.NotificationEvent
 import com.weskley.hdc_app.viewmodel.AlarmViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun AlarmScreen(
     viewModel: AlarmViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val scope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(true) }
     LaunchedEffect(Dispatchers.IO) {
         delay(2000)
@@ -53,16 +56,16 @@ fun AlarmScreen(
     fun onSwitchOn(isChecked: Boolean, item: CustomNotification) {
         viewModel.onEvent(NotificationEvent.SetActive(isChecked, item.id))
         if (isChecked) {
-                viewModel.setAlarm(
-                    item.id,
-                    item.title,
-                    item.body,
-                    item.image,
-                    item.time.split(":")[0].toInt(),
-                    item.time.split(":")[1].toInt()
-                )
+            viewModel.setAlarm(
+                item.id,
+                item.title,
+                item.body,
+                item.image,
+                item.time.split(":")[0].toInt(),
+                item.time.split(":")[1].toInt()
+            )
         } else {
-                viewModel.cancelAlarm(item.id)
+            viewModel.cancelAlarm(item.id)
         }
     }
     Column(
@@ -77,9 +80,12 @@ fun AlarmScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
-                    modifier = Modifier.padding(bottom = 8.dp).size(46.dp),
+                    modifier = Modifier
+                        .padding(bottom = 8.dp)
+                        .size(46.dp),
                     imageVector = Icons.TwoTone.NotificationsOff,
-                    contentDescription = null)
+                    contentDescription = null
+                )
                 Text(
                     text = "Nenhuma Notificação Encontrada",
                     style = MaterialTheme.typography.headlineLarge,
@@ -120,7 +126,9 @@ fun AlarmScreen(
                 .padding(bottom = 8.dp, end = 8.dp)
                 .align(Alignment.End),
             onClick = {
-                viewModel.onEvent(NotificationEvent.ShowBottomSheet)
+                scope.launch(Dispatchers.IO) {
+                    viewModel.onEvent(NotificationEvent.ShowBottomSheet)
+                }
             },
         ) {
             Icon(imageVector = Icons.Filled.Add, contentDescription = null)

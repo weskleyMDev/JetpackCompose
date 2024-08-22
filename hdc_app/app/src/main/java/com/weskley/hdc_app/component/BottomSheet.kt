@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -33,6 +34,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.weskley.hdc_app.state.NotificationEvent
 import com.weskley.hdc_app.viewmodel.AlarmViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -44,6 +47,7 @@ fun BottomSheet(
     viewModel: AlarmViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val scope = rememberCoroutineScope()
     val calendar = Calendar.getInstance()
     val sheetState = rememberModalBottomSheetState()
     val formatter = remember {
@@ -78,7 +82,11 @@ fun BottomSheet(
                     textStyle = MaterialTheme.typography.bodyLarge,
                     value = state.body,
                     onValueChange = { newBody ->
-                        if (newBody.length <= 100) viewModel.onEvent(NotificationEvent.SetBody(newBody))
+                        scope.launch(Dispatchers.IO) {
+                            if (newBody.length <= 100) {
+                                viewModel.onEvent(NotificationEvent.SetBody(newBody))
+                            }
+                        }
                     },
                     minLines = 1,
                     maxLines = 2,
@@ -113,7 +121,7 @@ fun BottomSheet(
                     Spacer(modifier = Modifier.weight(1f))
                     IconButton(
                         onClick = {
-                            viewModel.pickerState()
+                            scope.launch(Dispatchers.IO) { viewModel.pickerState() }
                         }) {
                         Icon(
                             imageVector = Icons.TwoTone.AddAlarm,
@@ -126,7 +134,7 @@ fun BottomSheet(
                 Row {
                     Spacer(modifier = Modifier.weight(1f))
                     TextButton(onClick = {
-                        viewModel.onEvent(NotificationEvent.ClearTextFields)
+                        scope.launch(Dispatchers.IO) { viewModel.onEvent(NotificationEvent.ClearTextFields) }
                     }) {
                         Text(
                             text = "CANCELAR",
@@ -148,16 +156,18 @@ fun BottomSheet(
         }
         if (viewModel.isPickerOpen) {
             MyTimePicker(
-                onDismiss = { viewModel.isPickerOpen = false },
+                onDismiss = { scope.launch(Dispatchers.IO) { viewModel.isPickerOpen = false } },
                 onConfirm = {
-                    viewModel.isPickerOpen = false
-                    calendar.set(Calendar.HOUR_OF_DAY, it.hour)
-                    calendar.set(Calendar.MINUTE, it.minute)
-                    viewModel.onEvent(
-                        NotificationEvent.SetTime(
-                            formatter.format(calendar.time)
+                    scope.launch(Dispatchers.IO) {
+                        viewModel.isPickerOpen = false
+                        calendar.set(Calendar.HOUR_OF_DAY, it.hour)
+                        calendar.set(Calendar.MINUTE, it.minute)
+                        viewModel.onEvent(
+                            NotificationEvent.SetTime(
+                                formatter.format(calendar.time)
+                            )
                         )
-                    )
+                    }
                 }
             )
         }
