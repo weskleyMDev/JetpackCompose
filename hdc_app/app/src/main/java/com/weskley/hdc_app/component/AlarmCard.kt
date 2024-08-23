@@ -41,14 +41,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import com.weskley.hdc_app.R
 import com.weskley.hdc_app.model.CustomNotification
 import com.weskley.hdc_app.ui.theme.Blue
 import com.weskley.hdc_app.ui.theme.DarkBlue
 import com.weskley.hdc_app.ui.theme.LightBlue
 import com.weskley.hdc_app.ui.theme.MediumDarkBlue
 import com.weskley.hdc_app.ui.theme.Turquoise
-import com.weskley.hdc_app.viewmodel.AlarmViewModel
 
 
 @Composable
@@ -56,7 +55,7 @@ fun AlarmCArd(
     item: CustomNotification,
     onSwitchOn: (Boolean) -> Unit,
     onDelete: () -> Unit,
-    viewModel: AlarmViewModel = hiltViewModel()
+    onEdit: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     var flipped by remember { mutableStateOf(false) }
@@ -69,13 +68,12 @@ fun AlarmCArd(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
-            .background(Color.LightGray)
+            .background(Color.Black)
             .graphicsLayer {
                 rotationX = rotation
                 cameraDistance = 8f * density
             }
     ) {
-        //BACK
         if (flipped) {
             Box(
                 modifier = Modifier
@@ -135,22 +133,47 @@ fun AlarmCArd(
                                 .align(Alignment.CenterStart)
                         )
                     }
-                    IconButton(onClick = {
-                        onDelete()
-                        flipped = !flipped
-                    }) {
-                        Icon(
-                            modifier = Modifier.size(36.dp),
-                            imageVector = Icons.TwoTone.Delete,
-                            contentDescription = null,
-                            tint = Color.Red
-                        )
+                    Box(
+                        modifier = Modifier
+                            .height(80.dp),
+//                        contentAlignment = Alignment.Center
+                    ) {
+                        IconButton(
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .size(34.dp),
+                            onClick = {
+                                onEdit()
+                                flipped = !flipped
+                            }) {
+                            Icon(
+                                modifier = Modifier
+                                    .size(32.dp),
+                                painter = painterResource(id = R.drawable.twotone_edit_notifications_24),
+                                contentDescription = null,
+                                tint = Color.Blue
+                            )
+                        }
+                        IconButton(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .size(34.dp),
+                            onClick = {
+                                onDelete()
+                                flipped = !flipped
+                            }) {
+                            Icon(
+                                modifier = Modifier
+                                    .size(32.dp),
+                                imageVector = Icons.TwoTone.Delete,
+                                contentDescription = null,
+                                tint = Color.Red
+                            )
+                        }
                     }
-
                 }
             }
         } else {
-            //FRONT
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

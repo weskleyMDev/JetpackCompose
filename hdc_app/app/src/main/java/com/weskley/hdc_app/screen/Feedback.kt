@@ -16,7 +16,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import com.weskley.hdc_app.component.CustomAlert
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -105,10 +104,4 @@ fun Feedback(
         Text(text = "Feedback: ${text.value}")
         Text(text = "Horário: $timeNow")
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun FeedbackPreview() {
-    Feedback("teste")
 }

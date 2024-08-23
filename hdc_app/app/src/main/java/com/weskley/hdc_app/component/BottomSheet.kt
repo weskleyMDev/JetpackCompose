@@ -16,9 +16,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -26,19 +26,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.weskley.hdc_app.R
 import com.weskley.hdc_app.state.NotificationEvent
 import com.weskley.hdc_app.viewmodel.AlarmViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -50,6 +49,12 @@ fun BottomSheet(
     onDismiss: () -> Unit,
     viewModel: AlarmViewModel = hiltViewModel()
 ) {
+    val bodyField by remember {
+        mutableStateOf("Descrição")
+    }
+    val timeField by remember {
+        mutableStateOf("Horário")
+    }
     val state by viewModel.state.collectAsState()
     val scope = rememberCoroutineScope()
     val calendar = Calendar.getInstance()
@@ -57,18 +62,7 @@ fun BottomSheet(
     val formatter = remember {
         SimpleDateFormat("HH:mm", Locale.getDefault())
     }
-    val debounceScope = rememberCoroutineScope()
-    var textFieldDebounceJob by remember { mutableStateOf<Job?>(null) }
 
-    fun updateBodyText(newBody: String) {
-        textFieldDebounceJob?.cancel()
-        textFieldDebounceJob = debounceScope.launch {
-            delay(300) // Debounce delay
-            if (newBody.length <= 100) {
-                viewModel.onEvent(NotificationEvent.SetBody(newBody))
-            }
-        }
-    }
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
@@ -85,20 +79,22 @@ fun BottomSheet(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 DropMenu(state = state)
-                TextField(
+                OutlinedTextField(
                     placeholder = {
                         Text(
-                            text = "Descrição",
+                            text = bodyField,
                             overflow = TextOverflow.Ellipsis
                         )
                     },
                     label = {
-                        Text(text = "Descrição")
+                        Text(text = bodyField)
                     },
                     textStyle = MaterialTheme.typography.bodyLarge,
                     value = state.body,
                     onValueChange = { newBody ->
-                        updateBodyText(newBody)
+                        scope.launch {
+                            viewModel.onEvent(NotificationEvent.SetBody(newBody))
+                        }
                     },
                     minLines = 1,
                     maxLines = 2,
@@ -111,32 +107,42 @@ fun BottomSheet(
                     }
                 )
                 Row(
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    TextField(
+                    OutlinedTextField(
                         modifier = Modifier.width(120.dp),
                         value = state.time,
                         onValueChange = {},
                         readOnly = true,
                         placeholder = {
                             Text(
-                                text = "Horário",
+                                text = timeField,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                         },
                         label = {
-                            Text(text = "Horário")
+                            Text(text = timeField)
                         },
                     )
-                    Spacer(modifier = Modifier.weight(1f))
                     IconButton(
                         onClick = {
                             scope.launch { viewModel.pickerState() }
                         }) {
                         Icon(
                             imageVector = Icons.TwoTone.AddAlarm,
+                            contentDescription = null,
+                            modifier = Modifier.size(36.dp)
+                        )
+                    }
+                    IconButton(
+                        onClick = {
+
+                        }) {
+                        Icon(
+                            painterResource(id = R.drawable.twotone_photo_camera_24),
                             contentDescription = null,
                             modifier = Modifier.size(36.dp)
                         )
