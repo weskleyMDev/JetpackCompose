@@ -15,6 +15,7 @@ object Constants {
     const val HIGH_IMPORTANCE = NotificationManager.IMPORTANCE_HIGH
     const val HIGH_PRIORITY = NotificationCompat.PRIORITY_HIGH
     const val REQUEST_CODE = 1000
+    const val REQUEST_CODE_ID = 0
     const val PENDING_CODE = 1
     const val GROUP_KEY = "hdc_group"
     const val SUMMARY_TITLE = "HDC"

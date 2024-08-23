@@ -11,6 +11,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import com.weskley.hdc_app.MainActivity
@@ -24,7 +25,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.Calendar
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.random.Random
 
 @Singleton
 class NotificationServiceImp @Inject constructor(
@@ -34,7 +34,7 @@ class NotificationServiceImp @Inject constructor(
 ): NotificationService {
 
     override fun createNotification(
-        title: String, body: String, image: Int
+        id: Int, title: String, body: String, image: Int
     ) {
         val flag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) PendingIntent.FLAG_IMMUTABLE else 0
 
@@ -87,41 +87,59 @@ class NotificationServiceImp @Inject constructor(
             .setAutoCancel(true)
             .setGroupSummary(true)
 
-        notificationManager.notify(Random.nextInt(), notification.build())
-        notificationManager.notify(Constants.REQUEST_CODE, summaryNotification.build())
+        notificationManager.apply {
+            notify(id, notification.build())
+            notify(Constants.REQUEST_CODE, summaryNotification.build())
+        }
 
     }
 
     override fun setAlarm(id: Int, title: String, body: String, image: Int, hour: Int, minute: Int) {
+        val now = Calendar.getInstance()
         val time = Calendar.getInstance().apply {
             timeInMillis = System.currentTimeMillis()
             set(Calendar.HOUR_OF_DAY, hour)
             set(Calendar.MINUTE, minute)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
         }
+
+        if (time.timeInMillis <= now.timeInMillis) {
+            time.add(Calendar.DAY_OF_YEAR, 1)
+        }
+        Log.d("AlarmDebug", "Alarm set for: ${time.timeInMillis}")
+
         val alarmIntent = Intent(context, NotificationReceiver::class.java).apply {
             putExtra("title", title)
             putExtra("text", body)
             putExtra("img", image)
+            putExtra("id", id)
         }
         val pendingIntent = PendingIntent.getBroadcast(
             context,
             id,
             alarmIntent,
-            PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time.timeInMillis, pendingIntent)
+        Log.d("AlarmDebug", "Alarm with ID $id created for ${time.time}")
     }
 
     override fun cancelAlarm(id: Int) {
-        val pendingIntent = Intent(context, NotificationReceiver::class.java).let { intent ->
-            PendingIntent.getBroadcast(
-                context,
-                id,
-                intent,
-                PendingIntent.FLAG_IMMUTABLE
-            )
+        val intent = Intent(context, NotificationReceiver::class.java)
+        val pendingIntent =    PendingIntent.getBroadcast(
+            context,
+            id,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        if (pendingIntent != null) {
+            alarmManager.cancel(pendingIntent)
+            pendingIntent.cancel() // Cancela o PendingIntent
+            Log.d("AlarmDebug", "Alarm with ID $id canceled")
+        } else {
+            Log.d("AlarmDebug", "No alarm to cancel with ID $id")
         }
-        alarmManager.cancel(pendingIntent)
     }
 
 }

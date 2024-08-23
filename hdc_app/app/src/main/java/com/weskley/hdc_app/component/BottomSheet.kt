@@ -23,8 +23,10 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -35,6 +37,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.weskley.hdc_app.state.NotificationEvent
 import com.weskley.hdc_app.viewmodel.AlarmViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -52,6 +56,18 @@ fun BottomSheet(
     val sheetState = rememberModalBottomSheetState()
     val formatter = remember {
         SimpleDateFormat("HH:mm", Locale.getDefault())
+    }
+    val debounceScope = rememberCoroutineScope()
+    var textFieldDebounceJob by remember { mutableStateOf<Job?>(null) }
+
+    fun updateBodyText(newBody: String) {
+        textFieldDebounceJob?.cancel()
+        textFieldDebounceJob = debounceScope.launch {
+            delay(300) // Debounce delay
+            if (newBody.length <= 100) {
+                viewModel.onEvent(NotificationEvent.SetBody(newBody))
+            }
+        }
     }
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -82,11 +98,7 @@ fun BottomSheet(
                     textStyle = MaterialTheme.typography.bodyLarge,
                     value = state.body,
                     onValueChange = { newBody ->
-                        scope.launch(Dispatchers.IO) {
-                            if (newBody.length <= 100) {
-                                viewModel.onEvent(NotificationEvent.SetBody(newBody))
-                            }
-                        }
+                        updateBodyText(newBody)
                     },
                     minLines = 1,
                     maxLines = 2,
@@ -121,7 +133,7 @@ fun BottomSheet(
                     Spacer(modifier = Modifier.weight(1f))
                     IconButton(
                         onClick = {
-                            scope.launch(Dispatchers.IO) { viewModel.pickerState() }
+                            scope.launch { viewModel.pickerState() }
                         }) {
                         Icon(
                             imageVector = Icons.TwoTone.AddAlarm,
@@ -134,7 +146,7 @@ fun BottomSheet(
                 Row {
                     Spacer(modifier = Modifier.weight(1f))
                     TextButton(onClick = {
-                        scope.launch(Dispatchers.IO) { viewModel.onEvent(NotificationEvent.ClearTextFields) }
+                        scope.launch { viewModel.onEvent(NotificationEvent.ClearTextFields) }
                     }) {
                         Text(
                             text = "CANCELAR",
@@ -143,7 +155,7 @@ fun BottomSheet(
                         )
                     }
                     TextButton(onClick = {
-                        viewModel.onEvent(NotificationEvent.SaveNotification)
+                        scope.launch { viewModel.onEvent(NotificationEvent.SaveNotification) }
                     }) {
                         Text(
                             text = "SALVAR",
@@ -158,7 +170,7 @@ fun BottomSheet(
             MyTimePicker(
                 onDismiss = { scope.launch(Dispatchers.IO) { viewModel.isPickerOpen = false } },
                 onConfirm = {
-                    scope.launch(Dispatchers.IO) {
+                    scope.launch {
                         viewModel.isPickerOpen = false
                         calendar.set(Calendar.HOUR_OF_DAY, it.hour)
                         calendar.set(Calendar.MINUTE, it.minute)

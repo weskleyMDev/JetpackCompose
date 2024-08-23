@@ -24,6 +24,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -41,6 +42,7 @@ import kotlinx.coroutines.launch
 fun AlarmScreen(
     viewModel: AlarmViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current.applicationContext
     val state by viewModel.state.collectAsState()
     val scope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(true) }
@@ -54,7 +56,9 @@ fun AlarmScreen(
         )
     }
     fun onSwitchOn(isChecked: Boolean, item: CustomNotification) {
-        viewModel.onEvent(NotificationEvent.SetActive(isChecked, item.id))
+        scope.launch(Dispatchers.IO) {
+            viewModel.onEvent(NotificationEvent.SetActive(isChecked, item.id))
+        }
         if (isChecked) {
             viewModel.setAlarm(
                 item.id,

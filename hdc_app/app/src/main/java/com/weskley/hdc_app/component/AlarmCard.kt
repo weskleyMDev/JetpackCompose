@@ -29,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,11 +41,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.weskley.hdc_app.model.CustomNotification
 import com.weskley.hdc_app.ui.theme.Blue
 import com.weskley.hdc_app.ui.theme.DarkBlue
 import com.weskley.hdc_app.ui.theme.LightBlue
+import com.weskley.hdc_app.ui.theme.MediumDarkBlue
 import com.weskley.hdc_app.ui.theme.Turquoise
+import com.weskley.hdc_app.viewmodel.AlarmViewModel
 
 
 @Composable
@@ -52,7 +56,9 @@ fun AlarmCArd(
     item: CustomNotification,
     onSwitchOn: (Boolean) -> Unit,
     onDelete: () -> Unit,
+    viewModel: AlarmViewModel = hiltViewModel()
 ) {
+    val scope = rememberCoroutineScope()
     var flipped by remember { mutableStateOf(false) }
     val rotation by animateFloatAsState(
         targetValue = if (flipped) 180f else 0f,
@@ -215,6 +221,9 @@ fun AlarmCArd(
                         },
                         colors = SwitchDefaults.colors(
                             checkedTrackColor = DarkBlue,
+                            checkedThumbColor = MediumDarkBlue,
+                            checkedBorderColor = MediumDarkBlue
+
                         ),
                         thumbContent = if (item.active) {
                             {

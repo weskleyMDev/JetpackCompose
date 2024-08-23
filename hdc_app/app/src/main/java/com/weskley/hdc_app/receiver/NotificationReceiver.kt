@@ -15,14 +15,20 @@ class NotificationReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         try {
-            //if (Intent.ACTION_BOOT_COMPLETED == intent.action) {
-                val title = intent.getStringExtra("title") ?: ""
-                val text = intent.getStringExtra("text") ?: ""
-                val img = intent.getIntExtra("img", 0)
-                service.createNotification(title, text, img)
-            //}
+            val title = intent.getStringExtra("title") ?: ""
+            val text = intent.getStringExtra("text") ?: ""
+            val img = intent.getIntExtra("img", 0)
+            val id = intent.getIntExtra("id", 0)
+
+            Log.d("NotificationReceiver", "Received alarm: id=$id, title=$title, text=$text, img=$img")
+
+            if (::service.isInitialized) {
+                service.createNotification(id, title, text, img)
+            } else {
+                Log.e("NotificationReceiver", "NotificationService is not initialized.")
+            }
         } catch (e: Exception) {
-            Log.d("ERROR:", "${e.printStackTrace()}")
+            Log.e("NotificationReceiver", "Error occurred while creating notification", e)
         }
     }
 }

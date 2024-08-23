@@ -1,5 +1,7 @@
 package com.weskley.hdc_app.viewmodel
 
+import android.app.AlarmManager
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +27,7 @@ import javax.inject.Inject
 class AlarmViewModel @Inject constructor(
     private val service: NotificationService,
     private val database: NotificationDao,
+    private val alarmManager: AlarmManager
 ) : ViewModel() {
 
     private val _notifications =
@@ -78,6 +81,8 @@ class AlarmViewModel @Inject constructor(
                         body = "",
                         time = "",
                         image = 0,
+                        active = false,
+                        showAlert = false
                     )
                 }
             }
@@ -129,7 +134,9 @@ class AlarmViewModel @Inject constructor(
                         title = "",
                         body = "",
                         time = "",
-                        image = 0
+                        image = 0,
+                        active = false,
+                        showAlert = false
                     )
                 }
             }
@@ -162,13 +169,21 @@ class AlarmViewModel @Inject constructor(
 
     fun setAlarm(id: Int, title: String, body: String, image: Int, hour: Int, minute: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            service.setAlarm(id, title, body, image, hour, minute)
+            try {
+                service.setAlarm(id, title, body, image, hour, minute)
+            } catch (e: Exception) {
+                Log.e("AlarmViewModel", "Erro ao configurar alarme", e)
+            }
         }
     }
 
     fun cancelAlarm(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            service.cancelAlarm(id)
+            try {
+                service.cancelAlarm(id)
+            } catch (e: Exception) {
+                Log.e("AlarmViewModel", "Erro ao cancelar alarme", e)
+            }
         }
     }
 }
