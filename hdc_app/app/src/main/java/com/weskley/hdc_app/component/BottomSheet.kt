@@ -37,7 +37,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.weskley.hdc_app.R
 import com.weskley.hdc_app.state.NotificationEvent
 import com.weskley.hdc_app.viewmodel.AlarmViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -90,17 +89,17 @@ fun BottomSheet(
                         Text(text = bodyField)
                     },
                     textStyle = MaterialTheme.typography.bodyLarge,
-                    value = state.body,
+                    value = state.body.value,
                     onValueChange = { newBody ->
                         scope.launch {
-                            viewModel.onEvent(NotificationEvent.SetBody(newBody))
+                            state.body.value = newBody
                         }
                     },
                     minLines = 1,
                     maxLines = 2,
                     supportingText = {
                         Text(
-                            text = "${state.body.length} / 100",
+                            text = "${state.body.value.length} / 100",
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.End
                         )
@@ -113,7 +112,7 @@ fun BottomSheet(
                 ) {
                     OutlinedTextField(
                         modifier = Modifier.width(120.dp),
-                        value = state.time,
+                        value = state.time.value,
                         onValueChange = {},
                         readOnly = true,
                         placeholder = {
@@ -161,7 +160,16 @@ fun BottomSheet(
                         )
                     }
                     TextButton(onClick = {
-                        scope.launch { viewModel.onEvent(NotificationEvent.SaveNotification) }
+                        scope.launch {
+                            /*viewModel.onEvent(
+                                NotificationEvent.SaveNotification(
+                                    title = state.title.value,
+                                    body = state.body.value,
+                                    time = state.time.value,
+                                    image = state.image.value
+                                )
+                            )*/
+                        }
                     }) {
                         Text(
                             text = "SALVAR",
@@ -172,22 +180,22 @@ fun BottomSheet(
                 }
             }
         }
-        if (viewModel.isPickerOpen) {
+        /*if (viewModel.isPickerOpen) {
             MyTimePicker(
-                onDismiss = { scope.launch(Dispatchers.IO) { viewModel.isPickerOpen = false } },
+                onDismiss = {
+                    scope.launch(Dispatchers.IO) {
+                        viewModel.isPickerOpen = false
+                    }
+                },
                 onConfirm = {
                     scope.launch {
                         viewModel.isPickerOpen = false
                         calendar.set(Calendar.HOUR_OF_DAY, it.hour)
                         calendar.set(Calendar.MINUTE, it.minute)
-                        viewModel.onEvent(
-                            NotificationEvent.SetTime(
-                                formatter.format(calendar.time)
-                            )
-                        )
+                        state.time.value = formatter.format(calendar.time)
                     }
                 }
             )
-        }
+        }*/
     }
 }

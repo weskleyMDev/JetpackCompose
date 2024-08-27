@@ -19,7 +19,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             RoomDBTheme {
                 val state by viewModel.state.collectAsState()
-                TodoScreen(state)
+                TodoScreen(state = state, onEvent = viewModel::onEvent)
             }
         }
     }

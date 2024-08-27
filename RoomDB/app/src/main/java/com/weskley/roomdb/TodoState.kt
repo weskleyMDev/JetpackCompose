@@ -5,5 +5,6 @@ data class TodoState(
     val title: String = "",
     val text: String = "",
     val image: String = "",
-    val isDialogOpen: Boolean = false,
+    val saveDialog: Boolean = false,
+    val updateDialog: Boolean = false,
 )

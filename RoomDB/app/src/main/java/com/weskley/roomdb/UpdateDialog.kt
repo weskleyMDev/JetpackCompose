@@ -20,6 +20,7 @@ import androidx.compose.material3.TimeInput
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -31,10 +32,14 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TodoDialog(
+fun UpdateDialog(
     state: TodoState,
     onEvent: (TodoEvent) -> Unit,
+    index: Int
 ) {
+    LaunchedEffect(Unit) {
+        onEvent(TodoEvent.FindTodoById(state.todoList[index].id))
+    }
     val openDialog = remember {
         mutableStateOf(false)
     }
@@ -86,18 +91,15 @@ fun TodoDialog(
     }
     CustomDialog(
         onDismiss = {
-            onEvent(TodoEvent.HideSaveDialog)
+            onEvent(TodoEvent.HideUpdateDialog)
             onEvent(TodoEvent.ClearFields)
-                    },
-        onConfirm = {
-            onEvent(TodoEvent.HideSaveDialog)
-            onEvent(TodoEvent.SaveTodo)
         },
+        onConfirm = { onEvent(TodoEvent.HideUpdateDialog) },
         onCancel = {
-            onEvent(TodoEvent.HideSaveDialog)
+            onEvent(TodoEvent.HideUpdateDialog)
             onEvent(TodoEvent.ClearFields)
         },
-        title = "ALARME",
+        title = "${state.todoList[index].id} : ${state.todoList[index].title}",
         text = {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,

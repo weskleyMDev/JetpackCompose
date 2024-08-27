@@ -64,7 +64,7 @@ fun AppNavDrawer(
                     onClick = {
                         coroutineScope.launch {
                             drawerState.close()
-                            mainViewModel.selected.intValue = Constants.ICON_PROFILE
+                            mainViewModel.selected.value = Constants.ICON_PROFILE
                         }
                         navController.navigate(ScreenController.Profile.route) {
                             popUpTo(0)
@@ -78,7 +78,7 @@ fun AppNavDrawer(
                     onClick = {
                         coroutineScope.launch {
                             drawerState.close()
-                            mainViewModel.selected.intValue = Constants.ICON_ALARM
+                            mainViewModel.selected.value = Constants.ICON_ALARM
                         }
                         navController.navigate(ScreenController.Alarm.route) {
                             popUpTo(0)
@@ -92,7 +92,7 @@ fun AppNavDrawer(
                     onClick = {
                         coroutineScope.launch {
                             drawerState.close()
-                            mainViewModel.selected.intValue = Constants.ICON_PRESCRIPTION
+                            mainViewModel.selected.value = Constants.ICON_PRESCRIPTION
                         }
                         navController.navigate(ScreenController.Prescription.route) {
                             popUpTo(0)

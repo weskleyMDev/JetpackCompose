@@ -42,7 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.weskley.hdc_app.R
-import com.weskley.hdc_app.model.CustomNotification
+import com.weskley.hdc_app.state.NotificationState
 import com.weskley.hdc_app.ui.theme.Blue
 import com.weskley.hdc_app.ui.theme.DarkBlue
 import com.weskley.hdc_app.ui.theme.LightBlue
@@ -52,7 +52,8 @@ import com.weskley.hdc_app.ui.theme.Turquoise
 
 @Composable
 fun AlarmCArd(
-    item: CustomNotification,
+    item: NotificationState,
+    index: Int,
     onSwitchOn: (Boolean) -> Unit,
     onDelete: () -> Unit,
     onEdit: () -> Unit,
@@ -99,7 +100,7 @@ fun AlarmCArd(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Image(
-                        painter = painterResource(id = item.image),
+                        painter = painterResource(id = item.notifications[index].image),
                         contentDescription = null,
                         modifier = Modifier
                             .size(80.dp)
@@ -123,7 +124,7 @@ fun AlarmCArd(
                             )
                         }
                         Text(
-                            text = item.body,
+                            text = item.notifications[index].body,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = DarkBlue,
@@ -136,7 +137,6 @@ fun AlarmCArd(
                     Box(
                         modifier = Modifier
                             .height(80.dp),
-//                        contentAlignment = Alignment.Center
                     ) {
                         IconButton(
                             modifier = Modifier
@@ -204,7 +204,7 @@ fun AlarmCArd(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = item.time,
+                            text = item.notifications[index].time,
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -227,7 +227,7 @@ fun AlarmCArd(
                             )
                         }
                         Text(
-                            text = item.title,
+                            text = item.notifications[index].title,
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.titleLarge,
                             color = DarkBlue,
@@ -238,7 +238,7 @@ fun AlarmCArd(
                         )
                     }
                     Switch(
-                        checked = item.active,
+                        checked = item.notifications[index].active,
                         onCheckedChange = {
                             onSwitchOn(it)
                         },
@@ -248,7 +248,7 @@ fun AlarmCArd(
                             checkedBorderColor = MediumDarkBlue
 
                         ),
-                        thumbContent = if (item.active) {
+                        thumbContent = if (item.notifications[index].active) {
                             {
                                 Icon(
                                     modifier = Modifier.size(36.dp),

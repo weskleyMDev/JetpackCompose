@@ -16,10 +16,9 @@ import javax.inject.Inject
 class TodoViewModel @Inject constructor(
     @DatabaseDao private val todoDao: TodoDao
 ) : ViewModel() {
-//    private val todoDao = MainApplication.todoDataBase.getTodoDao()
-//    val todoList = todoDao.getAllTodo()
 
-    private val _todoList = todoDao.getAllTodo().stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
+    private val _todoList =
+        todoDao.findAllTodo().stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
     private val _state = MutableStateFlow(TodoState())
     val state = combine(_state, _todoList) { state, todoList ->
         state.copy(
@@ -28,92 +27,205 @@ class TodoViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TodoState())
 
     fun onEvent(event: TodoEvent) {
-        when(event) {
+        when (event) {
             is TodoEvent.DeleteTodo -> {
-                viewModelScope.launch(Dispatchers.IO) {
-                    todoDao.deleteTodo(event.todo)
+                try {
+                    viewModelScope.launch(Dispatchers.IO) {
+                        todoDao.deleteTodo(event.todo)
+                    }
+                } catch (e: Exception) {
+                    throw Exception("Error deleting todo with id=${event.todo.id}: $e")
                 }
             }
+
             is TodoEvent.SetImage -> {
-                _state.update {
-                    it.copy(
-                        image = event.image
-                    )
+                try {
+                    viewModelScope.launch {
+                        _state.update {
+                            it.copy(
+                                image = event.image
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    throw Exception("Error setting image: $e")
                 }
             }
+
             is TodoEvent.SetText -> {
-                _state.update {
-                    it.copy(
-                        text = event.text
-                    )
+                try {
+                    viewModelScope.launch {
+                        _state.update {
+                            it.copy(
+                                text = event.text
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    throw Exception("Error setting text: $e")
                 }
             }
+
             is TodoEvent.SetTitle -> {
-                _state.update {
-                    it.copy(
-                        title = event.title
-                    )
+                try {
+                    viewModelScope.launch {
+                        _state.update {
+                            it.copy(
+                                title = event.title
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    throw Exception("Error setting title: $e")
                 }
             }
-            TodoEvent.ShowDialog -> {
-                _state.update {
-                    it.copy(
-                        isDialogOpen = true
-                    )
+
+            TodoEvent.ShowSaveDialog -> {
+                try {
+                    viewModelScope.launch {
+                        _state.update {
+                            it.copy(
+                                saveDialog = true
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    throw Exception("Error showing save dialog: $e")
                 }
             }
-            TodoEvent.HideDialog -> {
-                _state.update {
-                    it.copy(
-                        isDialogOpen = false
-                    )
+
+            TodoEvent.HideSaveDialog -> {
+                try {
+                    viewModelScope.launch {
+                        _state.update {
+                            it.copy(
+                                saveDialog = false
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    throw Exception("Error hiding save dialog: $e")
                 }
             }
+
+            TodoEvent.ShowUpdateDialog -> {
+                try {
+                    viewModelScope.launch {
+                        _state.update {
+                            it.copy(
+                                updateDialog = true
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    throw Exception("Error showing update dialog: $e")
+                }
+            }
+
+            TodoEvent.HideUpdateDialog -> {
+                try {
+                    viewModelScope.launch {
+                        _state.update {
+                            it.copy(
+                                updateDialog = false
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    throw Exception("Error hiding update dialog: $e")
+                }
+            }
+
             TodoEvent.SaveTodo -> {
-                val title = state.value.title
-                val text = state.value.text
-                val image = state.value.image
+                try {
+                    viewModelScope.launch {
+                        val title = state.value.title
+                        val text = state.value.text
+                        val image = state.value.image
 
-                if (title.isBlank() || text.isBlank() || image.isBlank()) {
-                    return
+                        if (title.isBlank() || text.isBlank() || image.isBlank()) {
+                            return@launch
+                        }
+                        val todo = Todo(
+                            title = title,
+                            text = text,
+                            image = image
+                        )
+                        viewModelScope.launch(Dispatchers.IO) {
+                            todoDao.upsertTodo(todo)
+                        }
+                        _state.update {
+                            it.copy(
+                                title = "",
+                                text = "",
+                                image = "",
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    throw Exception("Error saving todo: $e")
                 }
-                val todo = Todo(
-                    title = title,
-                    text = text,
-                    image = image
-                )
+            }
+
+            is TodoEvent.UpdateTodo -> {
+                viewModelScope.launch {
+                    try {
+                        state.value.todoList.find { it.id == event.id }?.let { current ->
+                            val updatedTodo = current.copy(
+                                title = state.value.title,
+                                text = state.value.text,
+                                image = state.value.image
+                            )
+                            viewModelScope.launch(Dispatchers.IO) {
+                                todoDao.upsertTodo(updatedTodo)
+                            }
+                            _state.update {
+                                it.copy(
+                                    title = "",
+                                    text = "",
+                                    image = "",
+                                )
+                            }
+                        }
+                    } catch (e: Exception) {
+                        throw Exception("Error updating todo with id=${event.id}: $e")
+                    }
+                }
+            }
+
+            is TodoEvent.FindTodoById -> {
                 viewModelScope.launch(Dispatchers.IO) {
-                    todoDao.addTodo(todo)
+                    try {
+                        todoDao.findTodoById(event.id).collect { todo ->
+                            _state.update {
+                                it.copy(
+                                    title = todo.title,
+                                    text = todo.text,
+                                    image = todo.image
+                                )
+                            }
+                        }
+                    } catch (e: Exception) {
+                        throw Exception("Error finding todo by id=${event.id}: $e")
+                    }
                 }
-                _state.update {
-                    it.copy(
-                        title = "",
-                        text = "",
-                        image = "",
-                        isDialogOpen = false
-                    )
+            }
+
+            TodoEvent.ClearFields -> {
+                try {
+                    viewModelScope.launch {
+                        _state.update {
+                            it.copy(
+                                title = "",
+                                text = "",
+                                image = "",
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    throw Exception("Error clearing fields: $e")
                 }
             }
         }
     }
-    /*fun addTodo(
-        title: String,
-        text: String,
-        image: String
-    ) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val elem = Todo(
-                title = title,
-                text = text,
-                image = image
-            )
-            todoDao.addTodo(elem)
-        }
-    }
-
-    fun deleteTodo(todo: Todo) {
-        viewModelScope.launch(Dispatchers.IO) {
-            todoDao.deleteTodo(todo)
-        }
-    }*/
 }

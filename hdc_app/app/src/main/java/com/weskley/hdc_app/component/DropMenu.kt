@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.weskley.hdc_app.R
-import com.weskley.hdc_app.state.NotificationEvent
 import com.weskley.hdc_app.state.NotificationState
 import com.weskley.hdc_app.viewmodel.AlarmViewModel
 
@@ -49,9 +48,9 @@ fun DropMenu(
             OutlinedTextField(
                 modifier = Modifier.menuAnchor(),
                 textStyle = MaterialTheme.typography.bodyLarge,
-                value = state.title,
+                value = state.title.value,
                 onValueChange = {
-                    if (it.length <= 50) viewModel.onEvent(NotificationEvent.SetTitle(it))
+                    if (it.length <= 50) state.title.value = it
                 },
                 minLines = 1,
                 maxLines = 2,
@@ -60,13 +59,13 @@ fun DropMenu(
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
                 supportingText = {
                     Text(
-                        text = "${state.title.length} / 50",
+                        text = "${state.title.value.length} / 50",
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.End
                     )
                 }
             )
-            if (state.title == "") {
+            if (state.title.value == "") {
                 ExposedDropdownMenu(
                     expanded = isExpanded,
                     onDismissRequest = { isExpanded = false }
@@ -77,21 +76,21 @@ fun DropMenu(
                             onClick = {
                                 selectedText = list[index]
                                 isExpanded = false
-                                viewModel.onEvent(NotificationEvent.SetTitle(selectedText))
+                                state.title.value = selectedText
                             },
                             contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                         )
                     }
                 }
             }
-            img.value = when (state.title) {
+            img.value = when (state.title.value) {
                 "Paracetamol" -> R.drawable.paracetamol
                 "Dipirona" -> R.drawable.dipirona
                 "Ibuprofeno" -> R.drawable.ibuprofeno
                 "Estomazil" -> R.drawable.estomazil
                 else -> R.drawable.logo_circ_branco
             }
-            viewModel.onEvent(NotificationEvent.SetImage(img.value))
+            state.image.value = img.value
         }
     }
 }

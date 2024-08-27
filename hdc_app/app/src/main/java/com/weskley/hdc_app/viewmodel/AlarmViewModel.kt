@@ -1,10 +1,7 @@
 package com.weskley.hdc_app.viewmodel
 
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.weskley.hdc_app.dao.NotificationDao
@@ -24,12 +21,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AlarmViewModel @Inject constructor(
-    private val service: NotificationService,
     private val database: NotificationDao,
+    private val service: NotificationService
 ) : ViewModel() {
 
     private val _notifications =
-        database.findAll().stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
+        database.findAll()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
     private val _state = MutableStateFlow(NotificationState())
     val state = combine(_state, _notifications) { state, notifications ->
         state.copy(
@@ -37,106 +35,97 @@ class AlarmViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), NotificationState())
 
+    val selected = mutableStateOf(0)
+    private val pickerState = mutableStateOf(false)
+    fun pickerState() {
+        pickerState.value = !pickerState.value
+    }
+    val flipped = mutableStateOf(false)
+    fun flip() {
+        flipped.value = !flipped.value
+    }
+
+    fun setAlarm(item: CustomNotification) {
+        viewModelScope.launch {
+            service.setAlarm(item)
+        }
+    }
+
+    fun cancelAlarm(id: Int) {
+        viewModelScope.launch {
+            service.cancelAlarm(id)
+        }
+    }
+
     fun onEvent(event: NotificationEvent) {
         when (event) {
             is NotificationEvent.DeleteNotification -> {
                 viewModelScope.launch(Dispatchers.IO) {
-                    database.deleteNotification(event.id)
-                }
-            }
-
-            NotificationEvent.HideBottomSheet -> {
-                _state.update {
-                    it.copy(
-                        isOpened = false
-                    )
+                    database.deleteNotification(event.notification)
                 }
             }
 
             NotificationEvent.SaveNotification -> {
-                val title = state.value.title.trim()
-                val body = state.value.body.trim()
-                val time = state.value.time
-                val image = state.value.image
+                viewModelScope.launch {
+                    val title = state.value.title.value.trim()
+                    val body = state.value.body.value.trim()
+                    val time = state.value.time.value
+                    val image = state.value.image.value
 
-                if (title.isBlank() || body.isBlank() || time.isBlank()) {
-                    return
-                }
+                    if (title.isBlank() || body.isBlank() || time.isBlank()) {
+                        return@launch
+                    }
 
-                val notification = CustomNotification(
-                    title = title,
-                    body = body,
-                    time = time,
-                    image = image,
-                )
-                viewModelScope.launch(Dispatchers.IO) {
-                    database.insertOrUpdateNotification(notification)
-                }
-                _state.update {
-                    it.copy(
-                        isOpened = false,
-                        title = "",
-                        body = "",
-                        time = "",
-                        image = 0,
-                        active = false,
-                        showAlert = false
+                    val notification = CustomNotification(
+                        title = title,
+                        body = body,
+                        time = time,
+                        image = image,
                     )
-                }
-                Log.i("AlarmViewModel", "Notification saved: ${notification.id} - ${notification.title} - ${notification.body} - ${notification.time} - ${notification.image}")
-            }
+                    viewModelScope.launch(Dispatchers.IO) {
+                        database.upsertNotification(notification)
+                    }
 
-            is NotificationEvent.SetBody -> {
-                _state.update {
-                    it.copy(
-                        body = event.body
-                    )
+                    _state.update { clear ->
+                        clear.copy(
+                            title = mutableStateOf(""),
+                            body = mutableStateOf(""),
+                            time = mutableStateOf(""),
+                            image = mutableStateOf(0),
+                        )
+                    }
                 }
             }
 
-            is NotificationEvent.SetTime -> {
-                _state.update {
-                    it.copy(
-                        time = event.time
-                    )
-                }
-            }
+            is NotificationEvent.UpdateNotification -> {
+                viewModelScope.launch {
+                    val title = state.value.title.value.trim()
+                    val body = state.value.body.value.trim()
+                    val time = state.value.time.value
+                    val image = state.value.image.value
 
-            is NotificationEvent.SetTitle -> {
-                _state.update {
-                    it.copy(
-                        title = event.title
-                    )
-                }
-            }
+                    if (title.isBlank() || body.isBlank() || time.isBlank()) {
+                        return@launch
+                    }
 
-            NotificationEvent.ShowBottomSheet -> {
-                _state.update {
-                    it.copy(
-                        isOpened = true
+                    val notification = event.notification.copy(
+                        title = title,
+                        body = body,
+                        time = time,
+                        image = image,
                     )
-                }
-            }
+                    viewModelScope.launch(Dispatchers.IO) {
+                        database.upsertNotification(notification)
+                    }
 
-            is NotificationEvent.SetImage -> {
-                _state.update {
-                    it.copy(
-                        image = event.image
-                    )
-                }
-            }
-
-            NotificationEvent.ClearTextFields -> {
-                _state.update {
-                    it.copy(
-                        isOpened = false,
-                        title = "",
-                        body = "",
-                        time = "",
-                        image = 0,
-                        active = false,
-                        showAlert = false
-                    )
+                    _state.update { clear ->
+                        clear.copy(
+                            title = mutableStateOf(""),
+                            body = mutableStateOf(""),
+                            time = mutableStateOf(""),
+                            image = mutableStateOf(0),
+                        )
+                    }
                 }
             }
 
@@ -146,62 +135,37 @@ class AlarmViewModel @Inject constructor(
                 }
             }
 
-            NotificationEvent.ShowAlert -> {
-                _state.update {
-                    it.copy(
-                        showAlert = !it.showAlert
-                    )
+            is NotificationEvent.FindNotificationById -> {
+                viewModelScope.launch(Dispatchers.IO) {
+                    database.findNotificationById(event.id).collect { notification ->
+                        if (notification != null) {
+                            _state.update {
+                                it.copy(
+                                    title = mutableStateOf(notification.title),
+                                    body = mutableStateOf(notification.body),
+                                    time = mutableStateOf(notification.time),
+                                    image = mutableStateOf(notification.image),
+                                    active = mutableStateOf(notification.active),
+                                )
+                            }
+                        } else {
+                            Log.e("AlarmViewModel", "Notification not found")
+                        }
+                    }
                 }
             }
 
-        }
-    }
-
-    var selected = mutableIntStateOf(0)
-    var isPickerOpen by mutableStateOf(false)
-    private val _feedback = MutableStateFlow("")
-    val feedback get() = _feedback
-
-    fun pickerState() {
-        isPickerOpen = !isPickerOpen
-    }
-
-    fun setAlarm(item: CustomNotification) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                service.setAlarm(item)
-            } catch (e: Exception) {
-                Log.e("AlarmViewModel", "Error occurred while setting alarm", e)
-            }
-        }
-    }
-
-    fun resetAllAlarms() {
-        viewModelScope.launch {
-            val notifications = _notifications.value
-
-            notifications.forEach { notification ->
-                resetAlarm(notification)
-            }
-        }
-    }
-
-    fun resetAlarm(item: CustomNotification) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                service.resetAlarm(item)
-            } catch (e: Exception) {
-                Log.e("AlarmViewModel", "Error occurred while resetting alarm", e)
-            }
-        }
-    }
-
-    fun cancelAlarm(id: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                service.cancelAlarm(id)
-            } catch (e: Exception) {
-                Log.e("AlarmViewModel", "Error occurred while canceling alarm", e)
+            NotificationEvent.ClearTextFields -> {
+                viewModelScope.launch {
+                    _state.update {
+                        it.copy(
+                            title = mutableStateOf(""),
+                            body = mutableStateOf(""),
+                            time = mutableStateOf(""),
+                            image = mutableStateOf(0),
+                        )
+                    }
+                }
             }
         }
     }

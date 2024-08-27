@@ -36,7 +36,7 @@ fun AppBarBottom(
     ) {
         TextButton(
             onClick = {
-                mainViewModel.selected.intValue = Constants.ICON_HOME
+                mainViewModel.selected.value = Constants.ICON_HOME
                 navController.navigate(route = ScreenController.Home.route) {
                     popUpTo(0)
                 }
@@ -50,20 +50,20 @@ fun AppBarBottom(
                 Icon(
                     painterResource(id = R.drawable.outline_home_health_24),
                     contentDescription = null,
-                    tint = if (mainViewModel.selected.intValue == Constants.ICON_HOME) Blue else White,
-                    modifier = if (mainViewModel.selected.intValue == Constants.ICON_HOME) Modifier
+                    tint = if (mainViewModel.selected.value == Constants.ICON_HOME) Blue else White,
+                    modifier = if (mainViewModel.selected.value == Constants.ICON_HOME) Modifier
                         .size(30.dp) else Modifier.size(24.dp)
                 )
                 Text(
                     text = "INICIO",
-                    color = if (mainViewModel.selected.intValue == Constants.ICON_HOME) Blue else White,
+                    color = if (mainViewModel.selected.value == Constants.ICON_HOME) Blue else White,
                     style = MaterialTheme.typography.labelSmall
                 )
             }
         }
         TextButton(
             onClick = {
-                mainViewModel.selected.intValue = Constants.ICON_ALARM
+                mainViewModel.selected.value = Constants.ICON_ALARM
                 navController.navigate(route = ScreenController.Alarm.route) {
                     popUpTo(0)
                 }
@@ -77,19 +77,19 @@ fun AppBarBottom(
                 Icon(
                     painterResource(id = R.drawable.outline_alarm_24),
                     contentDescription = null,
-                    tint = if (mainViewModel.selected.intValue == Constants.ICON_ALARM) Blue else White,
-                    modifier = if (mainViewModel.selected.intValue == Constants.ICON_ALARM) Modifier
+                    tint = if (mainViewModel.selected.value == Constants.ICON_ALARM) Blue else White,
+                    modifier = if (mainViewModel.selected.value == Constants.ICON_ALARM) Modifier
                         .size(30.dp) else Modifier.size(24.dp)
                 )
                 Text(
                     text = "ALARMES",
-                    color = if (mainViewModel.selected.intValue == Constants.ICON_ALARM) Blue else White,
+                    color = if (mainViewModel.selected.value == Constants.ICON_ALARM) Blue else White,
                     style = MaterialTheme.typography.labelSmall
                 )
             }
         }
         TextButton(onClick = {
-            mainViewModel.selected.intValue = Constants.ICON_PRESCRIPTION
+            mainViewModel.selected.value = Constants.ICON_PRESCRIPTION
             navController.navigate(route = ScreenController.Prescription.route) {
                 popUpTo(0)
             }
@@ -101,19 +101,19 @@ fun AppBarBottom(
                 Icon(
                     painterResource(id = R.drawable.outline_clinical_notes_24),
                     contentDescription = null,
-                    tint = if (mainViewModel.selected.intValue == Constants.ICON_PRESCRIPTION) Blue else White,
-                    modifier = if (mainViewModel.selected.intValue == Constants.ICON_PRESCRIPTION) Modifier
+                    tint = if (mainViewModel.selected.value == Constants.ICON_PRESCRIPTION) Blue else White,
+                    modifier = if (mainViewModel.selected.value == Constants.ICON_PRESCRIPTION) Modifier
                         .size(30.dp) else Modifier.size(24.dp)
                 )
                 Text(
                     text = "RECEITAS",
-                    color = if (mainViewModel.selected.intValue == Constants.ICON_PRESCRIPTION) Blue else White,
+                    color = if (mainViewModel.selected.value == Constants.ICON_PRESCRIPTION) Blue else White,
                     style = MaterialTheme.typography.labelSmall
                 )
             }
         }
         TextButton(onClick = {
-            mainViewModel.selected.intValue = Constants.ICON_PROFILE
+            mainViewModel.selected.value = Constants.ICON_PROFILE
             navController.navigate(route = ScreenController.Profile.route) {
                 popUpTo(0)
             }
@@ -126,13 +126,13 @@ fun AppBarBottom(
                 Icon(
                     painterResource(id = R.drawable.outline_account_circle_24),
                     contentDescription = null,
-                    tint = if (mainViewModel.selected.intValue == Constants.ICON_PROFILE) Blue else White,
-                    modifier = if (mainViewModel.selected.intValue == Constants.ICON_PROFILE) Modifier
+                    tint = if (mainViewModel.selected.value == Constants.ICON_PROFILE) Blue else White,
+                    modifier = if (mainViewModel.selected.value == Constants.ICON_PROFILE) Modifier
                         .size(30.dp) else Modifier.size(24.dp)
                 )
                 Text(
                     text = "PERFIL",
-                    color = if (mainViewModel.selected.intValue == Constants.ICON_PROFILE) Blue else White,
+                    color = if (mainViewModel.selected.value == Constants.ICON_PROFILE) Blue else White,
                     style = MaterialTheme.typography.labelSmall
                 )
             }
