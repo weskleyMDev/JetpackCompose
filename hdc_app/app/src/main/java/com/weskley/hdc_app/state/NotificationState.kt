@@ -9,6 +9,6 @@ data class NotificationState(
     val title: MutableState<String> = mutableStateOf(""),
     val body: MutableState<String> = mutableStateOf(""),
     val time: MutableState<String> = mutableStateOf(""),
-    val image: MutableState<Int> = mutableStateOf(0),
+    val image: MutableState<String> = mutableStateOf(""),
     val active: MutableState<Boolean> = mutableStateOf(false),
 )

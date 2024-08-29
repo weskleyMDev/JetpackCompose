@@ -17,7 +17,7 @@ class NotificationReceiver : BroadcastReceiver() {
         try {
             val title = intent.getStringExtra("title") ?: ""
             val text = intent.getStringExtra("text") ?: ""
-            val img = intent.getIntExtra("img", 0)
+            val img = intent.getStringExtra("imgUri") ?: ""
             val id = intent.getIntExtra("id", 0)
 
             Log.d("NotificationReceiver", "Received alarm: id=$id, title=$title, text=$text, img=$img")

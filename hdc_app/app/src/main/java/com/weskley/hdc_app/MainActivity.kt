@@ -9,8 +9,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.LaunchedEffect
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.weskley.hdc_app.component.AppNavDrawer
 import com.weskley.hdc_app.ui.theme.Hdc_appTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -25,12 +24,21 @@ class MainActivity : ComponentActivity() {
         installSplashScreen().setKeepOnScreenCondition { false }
         enableEdgeToEdge()
         setContent {
-            val postNotificationPermissionState = rememberPermissionState(
+            val multiplePermissionsState = rememberMultiplePermissionsState(
+                permissions = listOf(
+                    android.Manifest.permission.POST_NOTIFICATIONS,
+                    android.Manifest.permission.CAMERA
+                )
+            )
+            /*val postNotificationPermissionState = rememberPermissionState(
                 permission = android.Manifest.permission.POST_NOTIFICATIONS
             )
-            LaunchedEffect(key1 = true) {
-                if (!postNotificationPermissionState.status.isGranted) {
-                    postNotificationPermissionState.launchPermissionRequest()
+            val cameraPermissionState = rememberPermissionState(
+                permission = android.Manifest.permission.CAMERA
+            )*/
+            LaunchedEffect(Unit) {
+                if (!multiplePermissionsState.allPermissionsGranted) {
+                    multiplePermissionsState.launchMultiplePermissionRequest()
                 }
             }
             Hdc_appTheme {

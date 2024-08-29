@@ -18,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.weskley.hdc_app.R
 import com.weskley.hdc_app.state.NotificationState
 import com.weskley.hdc_app.viewmodel.AlarmViewModel
 
@@ -83,14 +82,14 @@ fun DropMenu(
                     }
                 }
             }
-            img.value = when (state.title.value) {
+            /*img.value = when (state.title.value) {
                 "Paracetamol" -> R.drawable.paracetamol
                 "Dipirona" -> R.drawable.dipirona
                 "Ibuprofeno" -> R.drawable.ibuprofeno
                 "Estomazil" -> R.drawable.estomazil
                 else -> R.drawable.logo_circ_branco
             }
-            state.image.value = img.value
+            state.image.value = img.value*/
         }
     }
 }

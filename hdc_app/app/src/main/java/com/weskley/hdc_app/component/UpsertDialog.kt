@@ -1,6 +1,12 @@
 package com.weskley.hdc_app.component
 
+import android.content.ContentValues
+import android.content.Context
+import android.net.Uri
+import android.provider.MediaStore
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,6 +20,7 @@ import androidx.compose.material.icons.twotone.CameraAlt
 import androidx.compose.material.icons.twotone.CircleNotifications
 import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.Image
+import androidx.compose.material.icons.twotone.PhotoAlbum
 import androidx.compose.material.icons.twotone.WatchLater
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
@@ -68,6 +75,38 @@ fun UpsertDialog(
     val selectedItem = remember { mutableStateOf(items.first()) }
     val context = LocalContext.current.applicationContext
     val repeticao = remember { mutableStateOf("") }
+    var imageUri: Uri? = null
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            state.image.value = imageUri.toString()
+        }
+    }
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            state.image.value = it.toString()
+            Toast.makeText(context, "Imagem selecionada da galeria", Toast.LENGTH_SHORT).show()
+        } ?: run {
+            Toast.makeText(context, "Nenhuma imagem selecionada", Toast.LENGTH_SHORT).show()
+        }
+    }
+    fun createImageUri(context: Context): Uri {
+        val contentValues = ContentValues().apply {
+            put(
+                MediaStore.Images.Media.DISPLAY_NAME,
+                "HDC_${System.currentTimeMillis()}.jpg"
+            )
+            put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+            put(MediaStore.Images.Media.RELATIVE_PATH, "DCIM/Camera")
+        }
+        return context.contentResolver.insert(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            contentValues
+        )!!
+    }
     if (openDialog) {
         LaunchedEffect(notificationUpdate) {
             if (isUpdate && notificationUpdate != null) {
@@ -79,15 +118,8 @@ fun UpsertDialog(
                 state.title.value = ""
                 state.body.value = ""
                 state.time.value = ""
-                state.image.value = 0
+                state.image.value = ""
             }
-        }
-        when (state.title.value) {
-            "Dipirona" -> state.image.value = R.drawable.dipirona
-            "Paracetamol" -> state.image.value = R.drawable.paracetamol
-            "Ibuprofeno" -> state.image.value = R.drawable.ibuprofeno
-            "Estomazil" -> state.image.value = R.drawable.estomazil
-            else -> state.image.value = R.drawable.logo_circ_branco
         }
         AlertDialog(
             title = { Text(text = "ALARME", textAlign = TextAlign.Center) },
@@ -131,7 +163,7 @@ fun UpsertDialog(
             },
             text = {
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     OutlinedTextField(
                         value = state.title.value,
@@ -185,12 +217,11 @@ fun UpsertDialog(
                         Spacer(modifier = Modifier.width(8.dp))
                     }
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(18.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         OutlinedTextField(
                             modifier = Modifier.weight(1f),
-                            value = "",
+                            value = state.image.value,
                             onValueChange = {},
                             readOnly = true,
                             label = { Text(text = "Imagem") },
@@ -199,11 +230,13 @@ fun UpsertDialog(
                                     Icons.TwoTone.Image,
                                     contentDescription = null
                                 )
-                            }
+                            },
+                            singleLine = true
                         )
                         IconButton(
                             onClick = {
-                                openPicker.value = true
+                                imageUri = createImageUri(context)
+                                cameraLauncher.launch(imageUri!!)
                             }) {
                             Icon(
                                 modifier = Modifier.size(34.dp),
@@ -211,7 +244,15 @@ fun UpsertDialog(
                                 contentDescription = "Selecionar Imagem"
                             )
                         }
-                        Spacer(modifier = Modifier.width(8.dp))
+                        IconButton(onClick = {
+                            galleryLauncher.launch("image/png")
+                        }) {
+                            Icon(
+                                modifier = Modifier.size(30.dp),
+                                imageVector = Icons.TwoTone.PhotoAlbum,
+                                contentDescription = null
+                            )
+                        }
                     }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,

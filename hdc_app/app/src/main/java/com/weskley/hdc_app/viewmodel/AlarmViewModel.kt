@@ -43,13 +43,13 @@ class AlarmViewModel @Inject constructor(
 
     fun setAlarm(item: CustomNotification) {
         viewModelScope.launch {
-            service.setAlarm(item)
+            service.setDailyAlarm(item)
         }
     }
 
     fun cancelAlarm(id: Int) {
         viewModelScope.launch {
-            service.cancelAlarm(id)
+            service.cancelDailyAlarm(id)
         }
     }
 
@@ -87,7 +87,7 @@ class AlarmViewModel @Inject constructor(
                             title = mutableStateOf(""),
                             body = mutableStateOf(""),
                             time = mutableStateOf(""),
-                            image = mutableStateOf(0),
+                            image = mutableStateOf(""),
                         )
                     }
                 }
@@ -99,6 +99,7 @@ class AlarmViewModel @Inject constructor(
                     val body = state.value.body.value.trim()
                     val time = state.value.time.value
                     val image = state.value.image.value
+                    val active = state.value.active.value
 
                     if (title.isBlank() || body.isBlank() || time.isBlank()) {
                         return@launch
@@ -109,6 +110,7 @@ class AlarmViewModel @Inject constructor(
                         body = body,
                         time = time,
                         image = image,
+                        active = active
                     )
                     viewModelScope.launch(Dispatchers.IO) {
                         database.upsertNotification(notification)
@@ -119,7 +121,7 @@ class AlarmViewModel @Inject constructor(
                             title = mutableStateOf(""),
                             body = mutableStateOf(""),
                             time = mutableStateOf(""),
-                            image = mutableStateOf(0),
+                            image = mutableStateOf(""),
                         )
                     }
                 }
@@ -158,7 +160,7 @@ class AlarmViewModel @Inject constructor(
                             title = mutableStateOf(""),
                             body = mutableStateOf(""),
                             time = mutableStateOf(""),
-                            image = mutableStateOf(0),
+                            image = mutableStateOf(""),
                         )
                     }
                 }

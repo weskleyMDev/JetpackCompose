@@ -3,7 +3,6 @@ package com.weskley.hdc_app.component
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -99,13 +98,13 @@ fun AlarmCArd(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Image(
+                    /*Text(
                         painter = painterResource(id = item.notifications[index].image),
                         contentDescription = null,
                         modifier = Modifier
                             .size(80.dp)
                             .clip(CircleShape)
-                    )
+                    )*/
                     Box(
                         modifier = Modifier
                             .weight(1f)

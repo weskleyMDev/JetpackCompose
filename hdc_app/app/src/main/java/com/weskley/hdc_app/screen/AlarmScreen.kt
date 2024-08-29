@@ -1,6 +1,5 @@
 package com.weskley.hdc_app.screen
 
-import android.widget.Toast
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -45,13 +44,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.rememberAsyncImagePainter
 import com.weskley.hdc_app.R
 import com.weskley.hdc_app.component.ShimmerEffect
 import com.weskley.hdc_app.component.UpsertDialog
@@ -81,6 +80,7 @@ fun AlarmScreen(
     val fieldTitle = remember { mutableStateOf("") }
     val fieldBody = remember { mutableStateOf("") }
     val fieldTime = remember { mutableStateOf("") }
+    val fieldImage = remember { mutableStateOf("") }
 
     val isLoading = remember { mutableStateOf(true) }
 
@@ -105,7 +105,9 @@ fun AlarmScreen(
                         updateNotification.value!!.copy(
                             title = fieldTitle.value,
                             body = fieldBody.value,
-                            time = fieldTime.value
+                            time = fieldTime.value,
+                            image = fieldImage.value,
+                            active = false
                         )
                     )
                 )
@@ -186,7 +188,6 @@ fun ItemNotification(
     onUpdate: () -> Unit,
     viewModel: AlarmViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current.applicationContext
     val isActive = remember {
         mutableStateOf(notification.active)
     }
@@ -201,14 +202,7 @@ fun ItemNotification(
     )
     fun onSwitchOn(isChecked: Boolean) {
         if (isChecked) {
-            viewModel.setAlarm(
-                notification
-            )
-            Toast.makeText(
-                context,
-                "Notificação Ativada ${notification.title}: ${notification.id}",
-                Toast.LENGTH_SHORT
-            ).show()
+            viewModel.setAlarm(notification)
         } else {
             viewModel.cancelAlarm(notification.id)
         }
@@ -248,11 +242,12 @@ fun ItemNotification(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Image(
-                        painter = painterResource(id = notification.image),
+                        painter = rememberAsyncImagePainter(notification.image),
                         contentDescription = null,
                         modifier = Modifier
                             .size(80.dp)
                             .clip(CircleShape)
+                            .background(Color.Gray)
                     )
                     Box(
                         modifier = Modifier
