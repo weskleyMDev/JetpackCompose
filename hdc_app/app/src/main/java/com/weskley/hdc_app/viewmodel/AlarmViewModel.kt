@@ -40,10 +40,6 @@ class AlarmViewModel @Inject constructor(
     fun pickerState() {
         pickerState.value = !pickerState.value
     }
-    val flipped = mutableStateOf(false)
-    fun flip() {
-        flipped.value = !flipped.value
-    }
 
     fun setAlarm(item: CustomNotification) {
         viewModelScope.launch {
@@ -67,8 +63,8 @@ class AlarmViewModel @Inject constructor(
 
             NotificationEvent.SaveNotification -> {
                 viewModelScope.launch {
-                    val title = state.value.title.value.trim()
-                    val body = state.value.body.value.trim()
+                    val title = state.value.title.value
+                    val body = state.value.body.value
                     val time = state.value.time.value
                     val image = state.value.image.value
 
@@ -77,8 +73,8 @@ class AlarmViewModel @Inject constructor(
                     }
 
                     val notification = CustomNotification(
-                        title = title,
-                        body = body,
+                        title = title.trim(),
+                        body = body.trim(),
                         time = time,
                         image = image,
                     )
