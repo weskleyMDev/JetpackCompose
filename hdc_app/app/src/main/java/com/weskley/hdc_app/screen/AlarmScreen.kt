@@ -44,6 +44,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -179,6 +180,20 @@ fun AlarmScreen(
 }
 
 @Composable
+fun DisplayImage(imagePath: String) {
+    val painter = rememberAsyncImagePainter(imagePath)
+    Image(
+        painter = painter,
+        contentDescription = null,
+        modifier = Modifier
+            .size(80.dp)
+            .clip(CircleShape)
+            .background(Color.Gray),
+        contentScale = ContentScale.Crop
+    )
+}
+
+@Composable
 fun ItemNotification(
     notification: CustomNotification,
     onEvent: (NotificationEvent) -> Unit,
@@ -238,14 +253,7 @@ fun ItemNotification(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Image(
-                        painter = rememberAsyncImagePainter(notification.image),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(80.dp)
-                            .clip(CircleShape)
-                            .background(Color.Gray)
-                    )
+                    DisplayImage(imagePath = notification.image)
                     Box(
                         modifier = Modifier
                             .weight(1f)

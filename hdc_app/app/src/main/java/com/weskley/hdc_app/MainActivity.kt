@@ -27,15 +27,10 @@ class MainActivity : ComponentActivity() {
             val multiplePermissionsState = rememberMultiplePermissionsState(
                 permissions = listOf(
                     android.Manifest.permission.POST_NOTIFICATIONS,
-                    android.Manifest.permission.CAMERA
+                    android.Manifest.permission.CAMERA,
+                    android.Manifest.permission.READ_EXTERNAL_STORAGE
                 )
             )
-            /*val postNotificationPermissionState = rememberPermissionState(
-                permission = android.Manifest.permission.POST_NOTIFICATIONS
-            )
-            val cameraPermissionState = rememberPermissionState(
-                permission = android.Manifest.permission.CAMERA
-            )*/
             LaunchedEffect(Unit) {
                 if (!multiplePermissionsState.allPermissionsGranted) {
                     multiplePermissionsState.launchMultiplePermissionRequest()

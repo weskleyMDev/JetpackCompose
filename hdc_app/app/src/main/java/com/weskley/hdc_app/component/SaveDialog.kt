@@ -10,9 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.AlarmAdd
 import androidx.compose.material.icons.twotone.ArrowDropDown
@@ -44,7 +42,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.weskley.hdc_app.R
-import com.weskley.hdc_app.model.CustomNotification
 import com.weskley.hdc_app.state.NotificationState
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -53,70 +50,58 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UpsertDialog(
-    openDialog: Boolean,
-    isUpdate: Boolean,
-    notificationUpdate: CustomNotification?,
-    state: NotificationState,
+fun EditMedicationDialog(
+    showDialog: Boolean,
+    medicamentoNome: String,
+    medicamentoDose: String,
     onDismiss: () -> Unit,
-    onConfirm: () -> Unit,
+    onSave: () -> Unit,
+    state: NotificationState
 ) {
     val openPicker = remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val calendar = Calendar.getInstance()
-    val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+    val formatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
     val isOn = remember { mutableStateOf(false) }
     val expanded = remember { mutableStateOf(false) }
-    val items = listOf(
-        "Todos os dias",
-        "Semanal",
-        "Mensal"
-    )
+    val items = listOf("Todos os dias", "Semanal", "Mensal")
     val selectedItem = remember { mutableStateOf(items.first()) }
-    val context = LocalContext.current.applicationContext
+    val context = LocalContext.current
     val repeticao = remember { mutableStateOf("") }
-    var imageUri: Uri? = null
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture()
-    ) { success ->
-        if (success) {
-            state.image.value = imageUri.toString()
+    val imageUri = remember { mutableStateOf<Uri?>(null) }
+
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success && imageUri.value != null) {
+            state.image.value = imageUri.value.toString()
         }
     }
-    val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri ->
+
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
-            val imagePath = copyImageToAppDirectory(context, it)
-            state.image.value = imagePath
+            state.image.value = it.toString()
             Toast.makeText(context, "Imagem selecionada da galeria", Toast.LENGTH_SHORT).show()
         } ?: run {
             Toast.makeText(context, "Nenhuma imagem selecionada", Toast.LENGTH_SHORT).show()
         }
     }
+
     fun createImageUri(context: Context): Uri {
         val contentValues = ContentValues().apply {
             put(MediaStore.Images.Media.DISPLAY_NAME, "HDC_${System.currentTimeMillis()}.jpg")
-            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+            put(MediaStore.Images.Media.MIME_TYPE, "image/png")
             put(MediaStore.Images.Media.RELATIVE_PATH, "DCIM/Camera")
         }
         return context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)!!
     }
-    if (openDialog) {
-        LaunchedEffect(notificationUpdate) {
-            if (isUpdate && notificationUpdate != null) {
-                state.title.value = notificationUpdate.title
-                state.body.value = notificationUpdate.body
-                state.time.value = notificationUpdate.time
-                state.image.value = notificationUpdate.image
-            } else {
-                state.title.value = ""
-                state.body.value = ""
-                state.time.value = ""
-                state.image.value = ""
-            }
+
+    if (showDialog) {
+        LaunchedEffect(showDialog) {
+            state.title.value = medicamentoNome
+            state.body.value = medicamentoDose
         }
+
         AlertDialog(
+            onDismissRequest = onDismiss,
             title = { Text(text = "ALARME", textAlign = TextAlign.Center) },
             icon = {
                 Icon(
@@ -125,41 +110,8 @@ fun UpsertDialog(
                     modifier = Modifier.size(38.dp)
                 )
             },
-            onDismissRequest = onDismiss,
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onConfirm()
-                        onDismiss()
-                        if (isUpdate) {
-                            Toast.makeText(
-                                context,
-                                "Notificação Atualizada",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "Notificação Salva",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
-                ) {
-                    Text(text = if (isUpdate) "ATUALIZAR" else "SALVAR")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = onDismiss
-                ) {
-                    Text(text = "CANCELAR")
-                }
-            },
             text = {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         value = state.title.value,
                         onValueChange = { state.title.value = it },
@@ -171,7 +123,7 @@ fun UpsertDialog(
                             )
                         },
                         singleLine = true,
-                        maxLines = 2,
+                        maxLines = 2
                     )
                     OutlinedTextField(
                         value = state.body.value,
@@ -184,7 +136,7 @@ fun UpsertDialog(
                             )
                         },
                         singleLine = true,
-                        maxLines = 2,
+                        maxLines = 2
                     )
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(18.dp),
@@ -203,21 +155,15 @@ fun UpsertDialog(
                                 )
                             }
                         )
-                        IconButton(
-                            onClick = {
-                                openPicker.value = true
-                            }) {
+                        IconButton(onClick = { openPicker.value = true }) {
                             Icon(
                                 modifier = Modifier.size(34.dp),
                                 imageVector = Icons.TwoTone.AlarmAdd,
                                 contentDescription = "Selecionar Horário"
                             )
                         }
-                        Spacer(modifier = Modifier.width(8.dp))
                     }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         OutlinedTextField(
                             modifier = Modifier.weight(1f),
                             value = state.image.value,
@@ -232,11 +178,10 @@ fun UpsertDialog(
                             },
                             singleLine = true
                         )
-                        IconButton(
-                            onClick = {
-                                imageUri = createImageUri(context)
-                                cameraLauncher.launch(imageUri!!)
-                            }) {
+                        IconButton(onClick = {
+                            imageUri.value = createImageUri(context)
+                            cameraLauncher.launch(imageUri.value!!)
+                        }) {
                             Icon(
                                 modifier = Modifier.size(34.dp),
                                 imageVector = Icons.TwoTone.CameraAlt,
@@ -279,17 +224,15 @@ fun UpsertDialog(
                             if (isOn.value) {
                                 ExposedDropdownMenu(
                                     expanded = expanded.value,
-                                    onDismissRequest = {
-                                        expanded.value = !expanded.value
-                                    }
+                                    onDismissRequest = { expanded.value = !expanded.value }
                                 ) {
-                                    items.forEachIndexed { index, item ->
+                                    items.forEach { item ->
                                         DropdownMenuItem(
                                             text = { Text(text = item) },
                                             onClick = {
-                                                selectedItem.value = items[index]
-                                                expanded.value = !expanded.value
-                                                repeticao.value = selectedItem.value
+                                                selectedItem.value = item
+                                                repeticao.value = item
+                                                expanded.value = false
                                             }
                                         )
                                     }
@@ -298,19 +241,40 @@ fun UpsertDialog(
                         }
                         Switch(
                             checked = isOn.value,
-                            onCheckedChange = { isOn.value = it })
+                            onCheckedChange = { isOn.value = it }
+                        )
                     }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onSave()
+                        Toast.makeText(
+                            context,
+                            "Notificação Salva",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                ) {
+                    Text("SALVAR")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text("CANCELAR")
                 }
             }
         )
+
         if (openPicker.value) {
             MyTimePicker(
                 onDismiss = { scope.launch { openPicker.value = false } },
-                onConfirm = {
+                onConfirm = { time ->
                     scope.launch {
                         openPicker.value = false
-                        calendar.set(Calendar.HOUR_OF_DAY, it.hour)
-                        calendar.set(Calendar.MINUTE, it.minute)
+                        calendar.set(Calendar.HOUR_OF_DAY, time.hour)
+                        calendar.set(Calendar.MINUTE, time.minute)
                         state.time.value = formatter.format(calendar.time)
                     }
                 }
@@ -319,14 +283,3 @@ fun UpsertDialog(
     }
 }
 
-fun copyImageToAppDirectory(context: Context, uri: Uri): String {
-    val inputStream = context.contentResolver.openInputStream(uri) ?: return ""
-    val fileName = "HDC_${System.currentTimeMillis()}.jpg"
-    val outputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE)
-
-    inputStream.copyTo(outputStream)
-    inputStream.close()
-    outputStream.close()
-
-    return context.getFileStreamPath(fileName).absolutePath
-}
