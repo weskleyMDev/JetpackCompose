@@ -4,6 +4,7 @@ import android.app.AlarmManager
 import android.app.NotificationManager
 import android.content.Context
 import androidx.room.Room
+import com.google.firebase.firestore.FirebaseFirestore
 import com.weskley.hdc_app.dao.NotificationDao
 import com.weskley.hdc_app.database.CustomNotificationDb
 import com.weskley.hdc_app.service.NotificationService
@@ -63,6 +64,12 @@ object AlarmModule {
         db: CustomNotificationDb
     ): NotificationDao {
         return db.notificationDao
+    }
+
+    @Provides
+    @Singleton
+    fun providesFirebase(): FirebaseFirestore {
+        return FirebaseFirestore.getInstance()
     }
 }
 

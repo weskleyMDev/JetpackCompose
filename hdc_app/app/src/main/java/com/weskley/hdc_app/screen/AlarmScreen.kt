@@ -70,9 +70,7 @@ fun AlarmScreen(
     viewModel: AlarmViewModel = hiltViewModel()
 ) {
     val openDialog = remember { mutableStateOf(false) }
-    val isUpdate = remember {
-        mutableStateOf(false)
-    }
+    val isUpdate = remember { mutableStateOf(false) }
     val updateNotification = remember {
         mutableStateOf<CustomNotification?>(null)
     }
@@ -81,7 +79,6 @@ fun AlarmScreen(
     val fieldBody = remember { mutableStateOf("") }
     val fieldTime = remember { mutableStateOf("") }
     val fieldImage = remember { mutableStateOf("") }
-
     val isLoading = remember { mutableStateOf(true) }
 
     LaunchedEffect(Dispatchers.IO) {

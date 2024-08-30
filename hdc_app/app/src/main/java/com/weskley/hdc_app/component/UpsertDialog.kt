@@ -174,7 +174,9 @@ fun UpsertDialog(
                                 painterResource(id = R.drawable.outline_pill_24),
                                 contentDescription = null
                             )
-                        }
+                        },
+                        singleLine = true,
+                        maxLines = 2,
                     )
                     OutlinedTextField(
                         value = state.body.value,
@@ -185,7 +187,9 @@ fun UpsertDialog(
                                 Icons.TwoTone.Description,
                                 contentDescription = null
                             )
-                        }
+                        },
+                        singleLine = true,
+                        maxLines = 2,
                     )
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(18.dp),
