@@ -18,3 +18,7 @@ val MediumBlue = Color(0xffd1f3fa)
 val GreenBlue = Color(0xff66cdaa)
 val Turquoise= Color(0xff33c4e3)
 val White = Color(0xffffffff)
+
+//CARD GRADIENT
+val color1 = Color(0xff283048)
+val color2 = Color(0xff859398)

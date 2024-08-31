@@ -7,6 +7,7 @@ sealed class ScreenController(val route: String) {
     data object Alarm: ScreenController("alarm")
     data object Prescription: ScreenController("prescription")
     data object Profile: ScreenController("profile")
+    data object Treatment: ScreenController("treatment")
     data object Feedback: ScreenController("feedback?arg={$ARG}")
         fun passArgument(name: String = "WESKLEY"): String {
             return this.route.replace(

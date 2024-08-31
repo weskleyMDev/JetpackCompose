@@ -12,13 +12,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.AddPhotoAlternate
 import androidx.compose.material.icons.twotone.AlarmAdd
 import androidx.compose.material.icons.twotone.ArrowDropDown
 import androidx.compose.material.icons.twotone.CameraAlt
 import androidx.compose.material.icons.twotone.CircleNotifications
 import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.Image
-import androidx.compose.material.icons.twotone.PhotoAlbum
 import androidx.compose.material.icons.twotone.WatchLater
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
@@ -68,32 +68,33 @@ fun EditMedicationDialog(
     val selectedItem = remember { mutableStateOf(items.first()) }
     val context = LocalContext.current
     val repeticao = remember { mutableStateOf("") }
-    val imageUri = remember { mutableStateOf<Uri?>(null) }
-
-    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-        if (success && imageUri.value != null) {
-            state.image.value = imageUri.value.toString()
+    var imageUri: Uri? = null
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            state.image.value = imageUri.toString()
         }
     }
-
-    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
         uri?.let {
-            state.image.value = it.toString()
+            val imagePath = copyImageToAppDirectory(context, it)
+            state.image.value = imagePath
             Toast.makeText(context, "Imagem selecionada da galeria", Toast.LENGTH_SHORT).show()
         } ?: run {
             Toast.makeText(context, "Nenhuma imagem selecionada", Toast.LENGTH_SHORT).show()
         }
     }
-
     fun createImageUri(context: Context): Uri {
         val contentValues = ContentValues().apply {
             put(MediaStore.Images.Media.DISPLAY_NAME, "HDC_${System.currentTimeMillis()}.jpg")
-            put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
             put(MediaStore.Images.Media.RELATIVE_PATH, "DCIM/Camera")
         }
         return context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)!!
     }
-
     if (showDialog) {
         LaunchedEffect(showDialog) {
             state.title.value = medicamentoNome
@@ -179,8 +180,8 @@ fun EditMedicationDialog(
                             singleLine = true
                         )
                         IconButton(onClick = {
-                            imageUri.value = createImageUri(context)
-                            cameraLauncher.launch(imageUri.value!!)
+                            imageUri = createImageUri(context)
+                            cameraLauncher.launch(imageUri!!)
                         }) {
                             Icon(
                                 modifier = Modifier.size(34.dp),
@@ -193,7 +194,7 @@ fun EditMedicationDialog(
                         }) {
                             Icon(
                                 modifier = Modifier.size(30.dp),
-                                imageVector = Icons.TwoTone.PhotoAlbum,
+                                imageVector = Icons.TwoTone.AddPhotoAlternate,
                                 contentDescription = null
                             )
                         }

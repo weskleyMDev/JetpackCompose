@@ -12,6 +12,7 @@ import com.weskley.hdc_app.screen.Feedback
 import com.weskley.hdc_app.screen.HomeScreen
 import com.weskley.hdc_app.screen.PrescriptionScreen
 import com.weskley.hdc_app.screen.ProfileScreen
+import com.weskley.hdc_app.screen.TreatmentScreen
 
 const val MY_URI = "https://weskley.com"
 
@@ -24,7 +25,7 @@ fun NavGraphController(
         startDestination = ScreenController.Home.route
     ) {
         composable(route = ScreenController.Home.route) {
-            HomeScreen()
+            HomeScreen(navController)
         }
         composable(route = ScreenController.Alarm.route) {
             AlarmScreen()
@@ -34,6 +35,9 @@ fun NavGraphController(
         }
         composable(route = ScreenController.Profile.route) {
             ProfileScreen()
+        }
+        composable(route = ScreenController.Treatment.route) {
+            TreatmentScreen()
         }
         composable(
             route = ScreenController.Feedback.route,

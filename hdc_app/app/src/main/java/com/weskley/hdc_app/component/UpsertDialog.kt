@@ -14,13 +14,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.AddPhotoAlternate
 import androidx.compose.material.icons.twotone.AlarmAdd
 import androidx.compose.material.icons.twotone.ArrowDropDown
 import androidx.compose.material.icons.twotone.CameraAlt
 import androidx.compose.material.icons.twotone.CircleNotifications
 import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.Image
-import androidx.compose.material.icons.twotone.PhotoAlbum
 import androidx.compose.material.icons.twotone.WatchLater
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
@@ -248,7 +248,7 @@ fun UpsertDialog(
                         }) {
                             Icon(
                                 modifier = Modifier.size(30.dp),
-                                imageVector = Icons.TwoTone.PhotoAlbum,
+                                imageVector = Icons.TwoTone.AddPhotoAlternate,
                                 contentDescription = null
                             )
                         }
