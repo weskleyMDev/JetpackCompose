@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -44,6 +46,7 @@ import com.weskley.hdc_app.event.UserEvent
 import com.weskley.hdc_app.model.User
 import com.weskley.hdc_app.state.UserState
 import com.weskley.hdc_app.ui.theme.DarkBlue
+import com.weskley.hdc_app.ui.theme.MediumDarkBlue
 import com.weskley.hdc_app.viewmodel.UserViewModel
 
 @Composable
@@ -81,9 +84,14 @@ fun ProfileScreen(
                     onClick = {
                         userEvent(UserEvent.EditUser(user))
                     },
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MediumDarkBlue,
+                        contentColor = Color.White
+                    )
                 ) {
                     Text(text = "Editar")
+                    Spacer(modifier = Modifier.width(8.dp))
                     Icon(imageVector = Icons.TwoTone.Edit, contentDescription = null)
                 }
             }

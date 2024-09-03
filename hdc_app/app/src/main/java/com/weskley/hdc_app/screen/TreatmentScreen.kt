@@ -21,6 +21,7 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,8 +44,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.weskley.hdc_app.model.Treatment
+import com.weskley.hdc_app.component.PercentBar
 import com.weskley.hdc_app.event.TreatmentEvent
+import com.weskley.hdc_app.model.Treatment
+import com.weskley.hdc_app.state.TreatmentState
 import com.weskley.hdc_app.viewmodel.TreatmentViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -180,6 +183,7 @@ fun TreatmentScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(treatmentState.treatmentList) { item ->
+                    ShowStatus(item, treatmentEvent, treatmentState)
                     TreatmentItem(
                         item = item,
                         onEvent = treatmentEvent
@@ -199,6 +203,60 @@ fun TreatmentScreen(
                 contentDescription = null
             )
         }
+    }
+}
+
+@Composable
+fun ShowStatus(
+    item: Treatment,
+    treatmentEvent: (TreatmentEvent) -> Unit,
+    treatmentState: TreatmentState
+) {
+    val p = remember { mutableStateOf(7) }
+    val d = remember { mutableStateOf(3) }
+    val p1 = remember { mutableStateOf(7) }
+    val d1 = remember { mutableStateOf(7) }
+    val count = remember { mutableStateOf(
+        p.value + d.value
+    ) }
+    val total = remember { mutableStateOf(
+        p1.value + d1.value
+    ) }
+    if (treatmentState.statusDialog.value) {
+        AlertDialog(
+            onDismissRequest = { treatmentEvent(TreatmentEvent.hideStatusDialog) },
+            confirmButton = {
+                TextButton(onClick = { treatmentEvent(TreatmentEvent.hideStatusDialog) }) {
+                    Text(text = "OK")
+                }
+            },
+            text = {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    PercentBar(
+                        indicatorValue = count.value.toShort(),
+                        maxIndicatorValue = total.value.toShort()
+                    )
+                    HorizontalDivider()
+                    Text(text = item.title.replaceFirstChar { it.uppercase() }, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(text = "PARACETAMOL:")
+                        Text(text = "${p.value} / ${p1.value}")
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(text = "DIPIRONA:")
+                        Text(text = "${d.value} / ${d1.value}")
+                    }
+                }
+            }
+        )
     }
 }
 
@@ -225,7 +283,7 @@ fun DatePickerModal(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text("Cancelar")
             }
         }
     ) {
@@ -246,7 +304,9 @@ fun TreatmentItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
-                modifier = Modifier.weight(1f).padding(bottom = 8.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(bottom = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
