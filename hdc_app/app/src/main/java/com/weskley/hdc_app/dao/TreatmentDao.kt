@@ -16,7 +16,7 @@ interface TreatmentDao {
     @Delete
     suspend fun deleteTreatment(treatment: Treatment)
 
-    @Query("SELECT * FROM treatment ORDER BY id ASC")
+    @Query("SELECT * FROM treatments ORDER BY id ASC")
     fun getTreatments(): Flow<List<Treatment>>
 
 }

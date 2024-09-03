@@ -20,10 +20,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.twotone.CrisisAlert
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.KeyboardDoubleArrowDown
 import androidx.compose.material.icons.twotone.NotificationsActive
 import androidx.compose.material.icons.twotone.NotificationsOff
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -50,20 +53,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.weskley.hdc_app.R
 import com.weskley.hdc_app.component.ShimmerEffect
 import com.weskley.hdc_app.component.UpsertDialog
+import com.weskley.hdc_app.event.NotificationEvent
 import com.weskley.hdc_app.model.CustomNotification
-import com.weskley.hdc_app.state.NotificationEvent
 import com.weskley.hdc_app.ui.theme.Blue
 import com.weskley.hdc_app.ui.theme.DarkBlue
 import com.weskley.hdc_app.ui.theme.LightBlue
 import com.weskley.hdc_app.ui.theme.MediumDarkBlue
 import com.weskley.hdc_app.ui.theme.Turquoise
 import com.weskley.hdc_app.viewmodel.AlarmViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 
 @Composable
@@ -81,10 +84,32 @@ fun AlarmScreen(
     val fieldTime = remember { mutableStateOf("") }
     val fieldImage = remember { mutableStateOf("") }
     val isLoading = remember { mutableStateOf(true) }
+    val showDialog = remember { mutableStateOf(true) }
 
-    LaunchedEffect(Dispatchers.IO) {
+    LaunchedEffect(isLoading.value) {
         delay(2000)
         isLoading.value = false
+    }
+    if (showDialog.value) {
+        AlertDialog(
+            onDismissRequest = { showDialog.value = false },
+            confirmButton = {
+                TextButton(onClick = { showDialog.value = false }) {
+                    Text(text = "OK")
+                }
+            },
+            text = {
+                Text(
+                    text = "LEMBRE-SE DE VERIFICAR SE OS ALARMES UTILIZADOS ESTÃO ATIVOS",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    textAlign = TextAlign.Center
+                )
+            },
+            icon = {
+                Icon(imageVector = Icons.TwoTone.CrisisAlert, contentDescription = null, tint = Color.Red)
+            }
+        )
     }
     UpsertDialog(
         openDialog = openDialog.value,

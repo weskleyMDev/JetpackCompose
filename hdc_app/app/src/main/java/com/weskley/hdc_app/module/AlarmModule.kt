@@ -3,10 +3,6 @@ package com.weskley.hdc_app.module
 import android.app.AlarmManager
 import android.app.NotificationManager
 import android.content.Context
-import androidx.room.Room
-import com.google.firebase.firestore.FirebaseFirestore
-import com.weskley.hdc_app.dao.NotificationDao
-import com.weskley.hdc_app.database.CustomNotificationDb
 import com.weskley.hdc_app.service.NotificationService
 import com.weskley.hdc_app.service.imp.NotificationServiceImp
 import dagger.Module
@@ -44,32 +40,6 @@ object AlarmModule {
         notificationManager: NotificationManager
     ): NotificationService {
         return NotificationServiceImp(context, alarmManager, notificationManager)
-    }
-
-    @Provides
-    @Singleton
-    fun provideDatabase(
-        @ApplicationContext context: Context
-    ): CustomNotificationDb {
-        return Room.databaseBuilder(
-            context,
-            CustomNotificationDb::class.java,
-            CustomNotificationDb.DATABASE_NAME
-        ).build()
-    }
-
-    @Provides
-    @Singleton
-    fun provideNotificationDao(
-        db: CustomNotificationDb
-    ): NotificationDao {
-        return db.notificationDao
-    }
-
-    @Provides
-    @Singleton
-    fun providesFirebase(): FirebaseFirestore {
-        return FirebaseFirestore.getInstance()
     }
 }
 

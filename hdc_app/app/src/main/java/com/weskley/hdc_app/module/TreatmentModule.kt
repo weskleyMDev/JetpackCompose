@@ -2,7 +2,10 @@ package com.weskley.hdc_app.module
 
 import android.content.Context
 import androidx.room.Room
+import com.google.firebase.firestore.FirebaseFirestore
+import com.weskley.hdc_app.dao.NotificationDao
 import com.weskley.hdc_app.dao.TreatmentDao
+import com.weskley.hdc_app.dao.UserDao
 import com.weskley.hdc_app.database.TreatmentDatabase
 import dagger.Module
 import dagger.Provides
@@ -13,7 +16,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object TreatmentModule {
+object DatabaseModule {
 
     @Provides
     @Singleton
@@ -30,8 +33,30 @@ object TreatmentModule {
     @Provides
     @Singleton
     fun provideTreatmentDao(
-        treatmentDatabase: TreatmentDatabase
+        db: TreatmentDatabase
     ): TreatmentDao {
-        return treatmentDatabase.treatmentDao()
+        return db.treatmentDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideNotificationDao(
+        db: TreatmentDatabase
+    ): NotificationDao {
+        return db.notificationDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserDao(
+        db: TreatmentDatabase
+    ): UserDao {
+        return db.userDao()
+    }
+
+    @Provides
+    @Singleton
+    fun providesFirebase(): FirebaseFirestore {
+        return FirebaseFirestore.getInstance()
     }
 }

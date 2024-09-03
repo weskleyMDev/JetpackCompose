@@ -44,7 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.weskley.hdc_app.model.Treatment
-import com.weskley.hdc_app.state.TreatmentEvent
+import com.weskley.hdc_app.event.TreatmentEvent
 import com.weskley.hdc_app.viewmodel.TreatmentViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

@@ -3,4 +3,10 @@
     <string name="app_title">Hora de Cuidar</string>
     <string name="menu">Menu</string>
     <string name="picker_title">Select Time</string>
+    <string name="title_home">Home</string>
+    <string name="title_alarm">Alarm</string>
+    <string name="title_prescription">Prescription</string>
+    <string name="title_profile">Profile</string>
+    <string name="title_treatment">Treatment</string>
+    <string name="title_feedback">Feedback</string>
 </resources>

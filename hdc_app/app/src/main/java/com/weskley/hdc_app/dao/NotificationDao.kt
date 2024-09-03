@@ -13,16 +13,16 @@ interface NotificationDao {
     @Upsert
     suspend fun upsertNotification(notification: CustomNotification)
 
-    @Query("UPDATE CustomNotification SET active = :active WHERE id = :id")
+    @Query("UPDATE notifications SET active = :active WHERE id = :id")
     suspend fun updateActive(active: Boolean, id: Int)
 
     @Delete
     suspend fun deleteNotification(notification: CustomNotification)
 
-    @Query("SELECT * FROM CustomNotification")
+    @Query("SELECT * FROM notifications")
     fun findAll(): Flow<List<CustomNotification>>
 
-    @Query("SELECT * FROM CustomNotification WHERE id = :id")
+    @Query("SELECT * FROM notifications WHERE id = :id")
     fun findNotificationById(id: Int): Flow<CustomNotification?>
 
 }

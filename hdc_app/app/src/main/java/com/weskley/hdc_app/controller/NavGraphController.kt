@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.weskley.hdc_app.model.User
 import com.weskley.hdc_app.screen.AlarmScreen
 import com.weskley.hdc_app.screen.Feedback
 import com.weskley.hdc_app.screen.HomeScreen

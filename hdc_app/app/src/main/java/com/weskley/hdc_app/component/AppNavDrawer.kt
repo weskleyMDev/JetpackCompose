@@ -3,44 +3,72 @@ package com.weskley.hdc_app.component
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
 import com.weskley.hdc_app.R
 import com.weskley.hdc_app.constant.Constants
 import com.weskley.hdc_app.controller.ScreenController
+import com.weskley.hdc_app.event.UserEvent
+import com.weskley.hdc_app.state.UserState
 import com.weskley.hdc_app.ui.theme.DarkBlue
 import com.weskley.hdc_app.viewmodel.AlarmViewModel
+import com.weskley.hdc_app.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 
 @Composable
 fun AppNavDrawer(
-    mainViewModel: AlarmViewModel = hiltViewModel()
+    hasDialogBeenShown: () -> Boolean,
+    setDialogShown: () -> Unit,
+    mainViewModel: AlarmViewModel = hiltViewModel(),
+    userViewModel: UserViewModel = hiltViewModel()
 ) {
     val coroutineScope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val context = LocalContext.current.applicationContext
     val navController = rememberNavController()
-    
+    var showDialog = remember { mutableStateOf(!hasDialogBeenShown()) }
+    val userState by userViewModel.userState.collectAsState()
+    val userEvent = userViewModel::userEvent
+
+    if (showDialog.value) {
+        GetUserDialog(onDismiss = {
+            showDialog.value = false
+            setDialogShown()
+        }, userState = userState, userEvent = userEvent)
+    }
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         gesturesEnabled = true,
@@ -54,13 +82,21 @@ fun AppNavDrawer(
                         .padding(16.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Image(painter = painterResource(id = R.drawable.logo_circ_pretog), contentDescription = "logo")
+                    Image(
+                        painter = painterResource(id = R.drawable.logo_circ_pretog),
+                        contentDescription = "logo"
+                    )
                 }
                 HorizontalDivider()
                 NavigationDrawerItem(
                     label = { Text(text = "PERFIL") },
                     selected = false,
-                    icon = { Icon(painterResource(id = R.drawable.outline_account_circle_24), contentDescription = null) },
+                    icon = {
+                        Icon(
+                            painterResource(id = R.drawable.outline_account_circle_24),
+                            contentDescription = null
+                        )
+                    },
                     onClick = {
                         coroutineScope.launch {
                             drawerState.close()
@@ -74,7 +110,12 @@ fun AppNavDrawer(
                 NavigationDrawerItem(
                     label = { Text(text = "ALARMES") },
                     selected = false,
-                    icon = { Icon(painterResource(id = R.drawable.outline_alarm_24), contentDescription = null) },
+                    icon = {
+                        Icon(
+                            painterResource(id = R.drawable.outline_alarm_24),
+                            contentDescription = null
+                        )
+                    },
                     onClick = {
                         coroutineScope.launch {
                             drawerState.close()
@@ -88,7 +129,12 @@ fun AppNavDrawer(
                 NavigationDrawerItem(
                     label = { Text(text = "RECEITAS") },
                     selected = false,
-                    icon = { Icon(painterResource(id = R.drawable.outline_clinical_notes_24), contentDescription = null) },
+                    icon = {
+                        Icon(
+                            painterResource(id = R.drawable.outline_clinical_notes_24),
+                            contentDescription = null
+                        )
+                    },
                     onClick = {
                         coroutineScope.launch {
                             drawerState.close()
@@ -103,10 +149,16 @@ fun AppNavDrawer(
                 NavigationDrawerItem(
                     label = { Text(text = "SAIR") },
                     selected = false,
-                    icon = { Icon(painterResource(id = R.drawable.outline_logout_24), contentDescription = null) },
+                    icon = {
+                        Icon(
+                            painterResource(id = R.drawable.outline_logout_24),
+                            contentDescription = null
+                        )
+                    },
                     onClick = {
                         coroutineScope.launch { drawerState.close() }
-                        Toast.makeText(context, "Logout Successful", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Logout Successful", Toast.LENGTH_SHORT)
+                            .show()
                     }
                 )
             }
@@ -114,4 +166,63 @@ fun AppNavDrawer(
     ) {
         AppBarTop(drawerState, navController)
     }
+}
+
+@Composable
+fun GetUserDialog(
+    onDismiss: () -> Unit,
+    userState: UserState,
+    userEvent: (UserEvent) -> Unit
+) {
+    val context = LocalContext.current.applicationContext
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    userEvent(UserEvent.SaveUser)
+                    onDismiss()
+                    Toast.makeText(
+                        context,
+                        "Usuário adicionado com sucesso!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            ) {
+                Text(text = "SALVAR")
+            }
+        },
+        title = { Text(text = "ADICIONAR USUÁRIO") },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedTextField(
+                    value = userState.name.value,
+                    onValueChange = { userState.name.value = it },
+                    label = { Text(text = "Nome", overflow = TextOverflow.Ellipsis) },
+                    maxLines = 1,
+                )
+                OutlinedTextField(
+                    value = userState.age.value,
+                    onValueChange = { userState.age.value = it },
+                    label = { Text(text = "Idade", overflow = TextOverflow.Ellipsis) },
+                    maxLines = 1,
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
+                )
+                OutlinedTextField(
+                    value = userState.bloodType.value,
+                    onValueChange = { userState.bloodType.value = it },
+                    label = {
+                        Text(
+                            text = "Tipo Sanguíneo",
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    },
+                    placeholder = { Text(text = "EX.: A-, O+...") },
+                    maxLines = 1,
+                )
+            }
+        }
+    )
 }

@@ -1,4 +1,4 @@
-package com.weskley.hdc_app.state
+package com.weskley.hdc_app.event
 
 import com.weskley.hdc_app.model.Treatment
 

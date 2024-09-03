@@ -4,8 +4,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.weskley.hdc_app.dao.TreatmentDao
+import com.weskley.hdc_app.event.TreatmentEvent
 import com.weskley.hdc_app.model.Treatment
-import com.weskley.hdc_app.state.TreatmentEvent
 import com.weskley.hdc_app.state.TreatmentState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers

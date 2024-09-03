@@ -44,7 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.weskley.hdc_app.component.EditMedicationDialog
 import com.weskley.hdc_app.model.Receitas
-import com.weskley.hdc_app.state.NotificationEvent
+import com.weskley.hdc_app.event.NotificationEvent
 import com.weskley.hdc_app.viewmodel.AlarmViewModel
 import com.weskley.hdc_app.viewmodel.ReceitasViewModel
 

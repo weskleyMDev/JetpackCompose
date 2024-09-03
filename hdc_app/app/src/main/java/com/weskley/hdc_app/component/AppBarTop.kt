@@ -21,8 +21,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.weskley.hdc_app.R
 import com.weskley.hdc_app.controller.NavGraphController
+import com.weskley.hdc_app.controller.ScreenController
 import com.weskley.hdc_app.ui.theme.DarkBlue
 import com.weskley.hdc_app.ui.theme.White
 import kotlinx.coroutines.launch
@@ -31,6 +33,20 @@ import kotlinx.coroutines.launch
 @Composable
 fun AppBarTop(drawer: DrawerState, navController: NavHostController) {
     val coroutineScope = rememberCoroutineScope()
+    val navBackStackEntry = navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry.value?.destination
+    val currentRoute = currentDestination?.route ?: ""
+
+    val appBarTitle = when (currentRoute) {
+        ScreenController.Home.route -> stringResource(id = R.string.app_title)
+        ScreenController.Profile.route -> stringResource(id = R.string.title_profile)
+        ScreenController.Alarm.route -> stringResource(id = R.string.title_alarm)
+        ScreenController.Treatment.route -> stringResource(id = R.string.title_treatment)
+        ScreenController.Prescription.route -> stringResource(id = R.string.title_prescription)
+        ScreenController.Feedback.route -> stringResource(id = R.string.title_feedback)
+        else -> stringResource(id = R.string.app_title)
+    }
+
     Scaffold(
         modifier = Modifier
             .fillMaxSize(),
@@ -50,7 +66,7 @@ fun AppBarTop(drawer: DrawerState, navController: NavHostController) {
                 },
                 title = {
                     Text(
-                        text = stringResource(id = R.string.app_title),
+                        text = appBarTitle,
                         style = MaterialTheme.typography.headlineSmall
                     )
                 },

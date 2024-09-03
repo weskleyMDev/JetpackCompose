@@ -35,7 +35,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.weskley.hdc_app.R
-import com.weskley.hdc_app.state.NotificationEvent
+import com.weskley.hdc_app.event.NotificationEvent
 import com.weskley.hdc_app.viewmodel.AlarmViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat

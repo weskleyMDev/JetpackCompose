@@ -1,4 +1,4 @@
-package com.weskley.hdc_app.state
+package com.weskley.hdc_app.event
 
 import com.weskley.hdc_app.model.CustomNotification
 
@@ -8,7 +8,8 @@ sealed interface NotificationEvent {
 
     data object SaveNotification : NotificationEvent
 
-    data class UpdateNotification(val notification: CustomNotification) : NotificationEvent
+    data class UpdateNotification(val notification: CustomNotification) :
+        NotificationEvent
 
     data class FindNotificationById(val id: Int): NotificationEvent
 
