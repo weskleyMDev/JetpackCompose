@@ -212,8 +212,8 @@ fun ShowStatus(
     treatmentEvent: (TreatmentEvent) -> Unit,
     treatmentState: TreatmentState
 ) {
-    val p = remember { mutableStateOf(7) }
-    val d = remember { mutableStateOf(3) }
+    val p = remember { mutableStateOf(6) }
+    val d = remember { mutableStateOf(6) }
     val p1 = remember { mutableStateOf(7) }
     val d1 = remember { mutableStateOf(7) }
     val count = remember { mutableStateOf(

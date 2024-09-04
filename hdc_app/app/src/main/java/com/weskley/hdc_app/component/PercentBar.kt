@@ -73,6 +73,15 @@ fun PercentBar(
         animationSpec = tween(1000), label = ""
     )
 
+    val animatedBarColor by animateColorAsState(
+        targetValue = when(percentage) {
+            in 0f..30f -> Color.Red
+            in 30f..80f -> Color.Yellow
+            else -> Color.Green
+        },
+        animationSpec = tween(1000), label = ""
+    )
+
     Column(
         modifier = Modifier
             .size(canvasSize)
@@ -87,7 +96,7 @@ fun PercentBar(
                 foregroundIndicator(
                     indicatorSweepAngle = sweepAngle,
                     componentSize = indicatorSize,
-                    indicatorColor = foregroundColor,
+                    indicatorColor = animatedBarColor,
                     indicatorStrokeWidth = indicatorForegroundWidth,
                     strokeCap = strokeCap
                 )
