@@ -7,9 +7,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
-import com.weskley.hdc_app.model.User
 import com.weskley.hdc_app.screen.AlarmScreen
-import com.weskley.hdc_app.screen.Feedback
+import com.weskley.hdc_app.screen.FeedbackScreen
 import com.weskley.hdc_app.screen.HomeScreen
 import com.weskley.hdc_app.screen.PrescriptionScreen
 import com.weskley.hdc_app.screen.ProfileScreen
@@ -50,7 +49,7 @@ fun NavGraphController(
             ),
             deepLinks = listOf(navDeepLink { uriPattern = "$MY_URI/$ARG={$ARG}" })) {
                 it.arguments?.getString(ARG)?.let { argument ->
-                    Feedback(argument)
+                    FeedbackScreen(argument)
                 }
             }
     }

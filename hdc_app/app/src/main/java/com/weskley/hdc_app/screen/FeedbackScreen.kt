@@ -21,7 +21,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun Feedback(
+fun FeedbackScreen(
     argument: String
 ) {
     var timeNow by remember {

@@ -3,6 +3,7 @@ package com.weskley.hdc_app.module
 import android.content.Context
 import androidx.room.Room
 import com.google.firebase.firestore.FirebaseFirestore
+import com.weskley.hdc_app.dao.FeedbackDao
 import com.weskley.hdc_app.dao.NotificationDao
 import com.weskley.hdc_app.dao.TreatmentDao
 import com.weskley.hdc_app.dao.UserDao
@@ -52,6 +53,14 @@ object DatabaseModule {
         db: TreatmentDatabase
     ): UserDao {
         return db.userDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideFeedbackDao(
+        db: TreatmentDatabase
+    ): FeedbackDao {
+        return db.feedbackDao()
     }
 
     @Provides

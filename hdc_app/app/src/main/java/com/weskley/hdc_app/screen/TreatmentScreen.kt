@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,10 +46,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.weskley.hdc_app.component.PercentBar
+import com.weskley.hdc_app.component.ShimmerEffectTreatment
 import com.weskley.hdc_app.event.TreatmentEvent
 import com.weskley.hdc_app.model.Treatment
 import com.weskley.hdc_app.state.TreatmentState
 import com.weskley.hdc_app.viewmodel.TreatmentViewModel
+import kotlinx.coroutines.delay
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -62,6 +65,11 @@ fun TreatmentScreen(
     val duration = remember { mutableStateOf("") }
     val showDatePicker = remember { mutableStateOf(false) }
     val selectedDate = remember { mutableStateOf(LocalDate.now()) }
+    val isLoadings = remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) {
+        delay(2000)
+        isLoadings.value = false
+    }
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -182,12 +190,17 @@ fun TreatmentScreen(
                     .padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+
                 items(treatmentState.treatmentList) { item ->
                     ShowStatus(item, treatmentEvent, treatmentState)
-                    TreatmentItem(
-                        item = item,
-                        onEvent = treatmentEvent
-                    )
+                    if (!isLoadings.value) {
+                        TreatmentItem(
+                            item = item,
+                            onEvent = treatmentEvent
+                        )
+                    } else {
+                        ShimmerEffectTreatment()
+                    }
                 }
             }
         }
@@ -216,12 +229,16 @@ fun ShowStatus(
     val d = remember { mutableStateOf(6) }
     val p1 = remember { mutableStateOf(7) }
     val d1 = remember { mutableStateOf(7) }
-    val count = remember { mutableStateOf(
-        p.value + d.value
-    ) }
-    val total = remember { mutableStateOf(
-        p1.value + d1.value
-    ) }
+    val count = remember {
+        mutableStateOf(
+            p.value + d.value
+        )
+    }
+    val total = remember {
+        mutableStateOf(
+            p1.value + d1.value
+        )
+    }
     if (treatmentState.statusDialog.value) {
         AlertDialog(
             onDismissRequest = { treatmentEvent(TreatmentEvent.hideStatusDialog) },
@@ -239,7 +256,11 @@ fun ShowStatus(
                         maxIndicatorValue = total.value.toShort()
                     )
                     HorizontalDivider()
-                    Text(text = item.title.replaceFirstChar { it.uppercase() }, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = item.title.replaceFirstChar { it.uppercase() },
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween

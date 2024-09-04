@@ -2,6 +2,7 @@ package com.weskley.hdc_app.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import com.weskley.hdc_app.dao.FeedbackDao
 import com.weskley.hdc_app.dao.NotificationDao
 import com.weskley.hdc_app.dao.TreatmentDao
 import com.weskley.hdc_app.dao.UserDao
@@ -20,10 +21,11 @@ import com.weskley.hdc_app.model.User
 abstract class TreatmentDatabase : RoomDatabase() {
 
     companion object {
-        const val DATABASE_NAME = "treatment_db"
+        const val DATABASE_NAME = "hdc_db"
     }
 
     abstract fun treatmentDao(): TreatmentDao
     abstract fun notificationDao(): NotificationDao
     abstract fun userDao(): UserDao
+    abstract fun feedbackDao(): FeedbackDao
 }
