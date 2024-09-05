@@ -7,6 +7,7 @@ import com.weskley.hdc_app.dao.NotificationDao
 import com.weskley.hdc_app.dao.TreatmentDao
 import com.weskley.hdc_app.dao.UserDao
 import com.weskley.hdc_app.model.CustomNotification
+import com.weskley.hdc_app.model.Feedback
 import com.weskley.hdc_app.model.Treatment
 import com.weskley.hdc_app.model.User
 
@@ -14,7 +15,8 @@ import com.weskley.hdc_app.model.User
     entities = [
         Treatment::class,
         CustomNotification::class,
-        User::class
+        User::class,
+        Feedback::class
     ],
     version = 1
 )

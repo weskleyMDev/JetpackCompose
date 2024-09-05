@@ -12,16 +12,19 @@ import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import com.weskley.hdc_app.MainActivity
 import com.weskley.hdc_app.R
 import com.weskley.hdc_app.constant.Constants
-import com.weskley.hdc_app.controller.ARG
+import com.weskley.hdc_app.controller.MEDICINE
 import com.weskley.hdc_app.controller.MY_URI
+import com.weskley.hdc_app.controller.TIME
 import com.weskley.hdc_app.model.CustomNotification
 import com.weskley.hdc_app.receiver.NotificationReceiver
 import com.weskley.hdc_app.service.NotificationService
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.File
 import java.util.Calendar
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -34,23 +37,24 @@ class NotificationServiceImp @Inject constructor(
 ) : NotificationService {
 
     override fun createNotification(
-        id: Int, title: String, body: String, imageUri: String
+        id: Int, title: String, body: String, imagePath: String, time: String
     ) {
         val flag =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE else 0
 
-        val clickIntent = Intent(
+        val notificationIntent = Intent(
             Intent.ACTION_VIEW,
-            "$MY_URI/$ARG=$title".toUri(),
+            "$MY_URI/$MEDICINE=$title&$TIME=$time".toUri(),
             context,
             MainActivity::class.java
         ).let { intent ->
             TaskStackBuilder.create(context).run {
                 addNextIntentWithParentStack(intent)
-                getPendingIntent(Constants.PENDING_CODE, flag)
+                getPendingIntent(id+1, flag)
             }
         }
 
+        val largeIcon = selectImage(context, imagePath)
         val soundUri =
             Uri.parse("android.resource://com.weskley.hdc_app/" + R.raw.new_iphone)
 
@@ -59,18 +63,16 @@ class NotificationServiceImp @Inject constructor(
             .setContentTitle(title)
             .setContentText(body)
             .setPriority(Constants.HIGH_PRIORITY)
-            .setLargeIcon(selectImage(context, imageUri))
+            .setLargeIcon(largeIcon)
             .setStyle(
                 NotificationCompat
                     .BigPictureStyle()
-                    .bigPicture(selectImage(context, imageUri))
+                    .bigPicture(largeIcon)
                     .bigLargeIcon(null as Bitmap?)
             )
-            .setContentIntent(clickIntent)
             .setVibrate(longArrayOf(0, 1000, 500, 1000))
             .setSound(soundUri)
-            .addAction(0, "CONFIRMAR", null)
-            .addAction(0, "FEEDBACK", clickIntent)
+            .setContentIntent(notificationIntent)
             .setGroup(Constants.GROUP_KEY)
             .setAutoCancel(true)
 
@@ -117,6 +119,7 @@ class NotificationServiceImp @Inject constructor(
             putExtra("title", item.title)
             putExtra("text", item.body)
             putExtra("imgUri", item.image)
+            putExtra("time", item.time)
             putExtra("id", item.id+1)
         }
         val pendingIntent = PendingIntent.getBroadcast(
@@ -154,6 +157,7 @@ class NotificationServiceImp @Inject constructor(
             putExtra("title", item.title)
             putExtra("text", item.body)
             putExtra("imgUri", item.image)
+            putExtra("time", item.time)
             putExtra("id", item.id)
         }
         val pendingIntent = PendingIntent.getBroadcast(
@@ -165,7 +169,6 @@ class NotificationServiceImp @Inject constructor(
         alarmManager.setExactAndAllowWhileIdle(
             AlarmManager.RTC_WAKEUP,
             time.timeInMillis,
-//            AlarmManager.INTERVAL_DAY,
             pendingIntent
         )
         Log.d("AlarmDebug", "Alarm with ID ${item.id} created for ${time.time}")
@@ -253,15 +256,15 @@ class NotificationServiceImp @Inject constructor(
     }
 }
 
-private fun selectImage(context: Context, image: String): Bitmap {
-    val bitmap: Bitmap? =
-        try {
-            val uri = Uri.parse(image)
-            val inputStream = context.contentResolver.openInputStream(uri)
-            BitmapFactory.decodeStream(inputStream)
-        } catch (e: Exception) {
-            Log.e("NotificationService", "Error selecting image: ${e.message}")
-            null
-        }
-    return bitmap ?: BitmapFactory.decodeResource(context.resources, R.drawable.logo_circ_branco)
+private fun selectImage(context: Context, imagePath: String): Bitmap {
+    return try {
+        val file = File(imagePath)
+        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+        context.contentResolver.openInputStream(uri)?.use { inputStream ->
+            BitmapFactory.decodeStream(inputStream) ?: BitmapFactory.decodeResource(context.resources, R.drawable.logo_circ_branco)
+        } ?: BitmapFactory.decodeResource(context.resources, R.drawable.logo_circ_branco)
+    } catch (e: Exception) {
+        Log.e("NotificationService", "Error selecting image: ${e.message}", e)
+        BitmapFactory.decodeResource(context.resources, R.drawable.logo_circ_branco)
+    }
 }

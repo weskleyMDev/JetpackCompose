@@ -18,12 +18,17 @@ class NotificationReceiver : BroadcastReceiver() {
             val title = intent.getStringExtra("title") ?: ""
             val text = intent.getStringExtra("text") ?: ""
             val img = intent.getStringExtra("imgUri") ?: ""
+            val time = intent.getStringExtra("time") ?: ""
             val id = intent.getIntExtra("id", 0)
+            val notificationId = intent.getIntExtra("notificationId", -1)
 
-            Log.d("NotificationReceiver", "Received alarm: id=$id, title=$title, text=$text, img=$img")
+            Log.d(
+                "NotificationReceiver",
+                "Received alarm: id=$id, title=$title, text=$text, img=$img, time=$time"
+            )
 
             if (::service.isInitialized) {
-                service.createNotification(id, title, text, img)
+                service.createNotification(id, title, text, img, time)
             } else {
                 Log.e("NotificationReceiver", "NotificationService is not initialized.")
             }

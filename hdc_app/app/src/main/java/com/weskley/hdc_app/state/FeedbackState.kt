@@ -11,6 +11,7 @@ data class FeedbackState(
     val justification: MutableState<String> = mutableStateOf(""),
     val entryTime: MutableState<String> = mutableStateOf(""),
     val shippingTime: MutableState<String> = mutableStateOf(""),
-    val isAddDialogOpen: MutableState<Boolean> = mutableStateOf(false),
+    val isAddDialogOpen: MutableState<Boolean> = mutableStateOf(true),
     val isUpdateDialogOpen: MutableState<Boolean> = mutableStateOf(false),
+    val feedbackUpdated: Feedback? = null
 )

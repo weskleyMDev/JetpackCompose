@@ -1,9 +1,7 @@
 package com.weskley.hdc_app.component
 
-import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
-import android.provider.MediaStore
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -43,10 +41,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import com.weskley.hdc_app.R
 import com.weskley.hdc_app.model.CustomNotification
 import com.weskley.hdc_app.state.NotificationState
 import kotlinx.coroutines.launch
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -95,12 +95,8 @@ fun UpsertDialog(
         }
     }
     fun createImageUri(context: Context): Uri {
-        val contentValues = ContentValues().apply {
-            put(MediaStore.Images.Media.DISPLAY_NAME, "HDC_${System.currentTimeMillis()}.jpg")
-            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-            put(MediaStore.Images.Media.RELATIVE_PATH, "DCIM/Camera")
-        }
-        return context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)!!
+        val file = File(context.filesDir, "HDC_${System.currentTimeMillis()}.jpg")
+        return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
     }
     if (openDialog) {
         LaunchedEffect(notificationUpdate) {
@@ -319,14 +315,14 @@ fun UpsertDialog(
     }
 }
 
-fun copyImageToAppDirectory(context: Context, uri: Uri): String {
+private fun copyImageToAppDirectory(context: Context, uri: Uri): String {
     val inputStream = context.contentResolver.openInputStream(uri) ?: return ""
     val fileName = "HDC_${System.currentTimeMillis()}.jpg"
     val outputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE)
-
-    inputStream.copyTo(outputStream)
-    inputStream.close()
-    outputStream.close()
-
+    inputStream.use { input ->
+        outputStream.use { output ->
+            input.copyTo(output)
+        }
+    }
     return context.getFileStreamPath(fileName).absolutePath
 }

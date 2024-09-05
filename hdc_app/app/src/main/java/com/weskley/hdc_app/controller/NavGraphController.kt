@@ -15,6 +15,8 @@ import com.weskley.hdc_app.screen.ProfileScreen
 import com.weskley.hdc_app.screen.TreatmentScreen
 
 const val MY_URI = "https://weskley.com"
+const val MEDICINE = "medicine"
+const val TIME = "time"
 
 @Composable
 fun NavGraphController(
@@ -42,15 +44,22 @@ fun NavGraphController(
         composable(
             route = ScreenController.Feedback.route,
             arguments = listOf(
-                navArgument(ARG) {
+                navArgument(MEDICINE) {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+                navArgument(TIME) {
                     type = NavType.StringType
                     defaultValue = ""
                 }
             ),
-            deepLinks = listOf(navDeepLink { uriPattern = "$MY_URI/$ARG={$ARG}" })) {
-                it.arguments?.getString(ARG)?.let { argument ->
-                    FeedbackScreen(argument)
-                }
-            }
+            deepLinks = listOf(navDeepLink {
+                uriPattern = "$MY_URI/$MEDICINE={$MEDICINE}&$TIME={$TIME}"
+            })
+        ) {
+            val medicine = it.arguments?.getString(MEDICINE)
+            val time = it.arguments?.getString(TIME)
+            FeedbackScreen(medicine!!, time!!)
+        }
     }
 }

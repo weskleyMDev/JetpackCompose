@@ -9,6 +9,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -16,17 +17,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.weskley.hdc_app.component.CustomAlert
+import com.weskley.hdc_app.event.FeedbackEvent
+import com.weskley.hdc_app.viewmodel.FeedbackViewModel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @Composable
 fun FeedbackScreen(
-    argument: String
+    medicine: String,
+    time: String,
+    feedbackViewModel: FeedbackViewModel = hiltViewModel()
 ) {
-    var timeNow by remember {
-        mutableStateOf("")
-    }
+    val feedbackState by feedbackViewModel.feedbackState.collectAsState()
+    val feedbackEvent = feedbackViewModel::feedBackEvent
     val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")
     val openDialog = remember { mutableStateOf(true) }
     val options = listOf("Sim", "Não")
@@ -43,18 +48,26 @@ fun FeedbackScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        if (openDialog.value) {
+        fun fetchData() {
+            val now = LocalDateTime.now().format(formatter)
+            feedbackState.shippingTime.value = now
+            feedbackState.medicine.value = medicine
+            text.value = if (isSelected == "Não") feedback else "-"
+            feedbackState.justification.value = text.value
+            feedbackState.answer.value = isSelected
+            feedbackState.entryTime.value = time
+        }
+        if (feedbackState.isAddDialogOpen.value) {
             CustomAlert(
                 onDismiss = {
-                    openDialog.value = false
+                    feedbackEvent(FeedbackEvent.HideAddFeedback)
                 },
                 onConfirm = {
-                    val now = LocalDateTime.now()
-                    openDialog.value = false
-                    text.value = if (isSelected == "Não") feedback else "-"
-                    timeNow = now.format(formatter)
+                    fetchData()
+                    feedbackEvent(FeedbackEvent.SaveFeedback)
+                    feedbackEvent(FeedbackEvent.HideAddFeedback)
                 },
-                title = argument ,
+                title = medicine ,
                 text = {
                     Column(
                         modifier = Modifier.fillMaxWidth(),
@@ -99,9 +112,5 @@ fun FeedbackScreen(
                 confirmText = "Enviar"
             )
         }
-        Text(text = "Medicamento: $argument")
-        Text(text = "Resposta: $isSelected")
-        Text(text = "Feedback: ${text.value}")
-        Text(text = "Horário: $timeNow")
     }
 }
