@@ -77,7 +77,7 @@ fun FeedbackScreen(
                 feedbackEvent(FeedbackEvent.SaveFeedback)
                 feedbackEvent(FeedbackEvent.HideAddFeedback)
             },
-            title = medicine,
+            title = "$medicine - $time",
             text = {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
