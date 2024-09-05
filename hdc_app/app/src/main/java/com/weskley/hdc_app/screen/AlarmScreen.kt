@@ -36,7 +36,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -86,7 +85,6 @@ fun AlarmScreen(
     val fieldImage = remember { mutableStateOf("") }
     val isLoading = remember { mutableStateOf(true) }
     val showDialog = remember { mutableStateOf(true) }
-    val flippedState = remember { mutableStateOf(false) }
 
     LaunchedEffect(isLoading.value) {
         delay(2000)
@@ -141,7 +139,6 @@ fun AlarmScreen(
                     )
                 )
                 viewModel.cancelAlarm(updateNotification.value!!.id)
-                flippedState.value = false
             } else {
                 viewModel.onEvent(
                     NotificationEvent.SaveNotification
@@ -189,8 +186,7 @@ fun AlarmScreen(
                                 openDialog.value = true
                                 isUpdate.value = true
                                 updateNotification.value = item
-                            },
-                            flippedState = flippedState
+                            }
                         )
                     } else {
                         ShimmerEffect()
@@ -206,7 +202,6 @@ fun AlarmScreen(
                 openDialog.value = true
                 isUpdate.value = false
                 updateNotification.value = null
-                flippedState.value = false
             },
         ) {
             Icon(imageVector = Icons.Filled.Add, contentDescription = null)
@@ -234,7 +229,6 @@ fun ItemNotification(
     onEvent: (NotificationEvent) -> Unit,
     onUpdate: () -> Unit,
     viewModel: AlarmViewModel = hiltViewModel(),
-    flippedState: MutableState<Boolean>,
 ) {
     val isActive = remember {
         mutableStateOf(notification.active)
@@ -242,7 +236,8 @@ fun ItemNotification(
     LaunchedEffect(notification.active) {
         isActive.value = notification.active
     }
-    var flipped by remember { flippedState }
+    var flipped by remember { mutableStateOf(false) }
+    var shouldFlip by remember { mutableStateOf(false) }
     val rotation by animateFloatAsState(
         targetValue = if (flipped) 180f else 0f,
         animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
@@ -256,6 +251,15 @@ fun ItemNotification(
             viewModel.cancelAlarm(notification.id)
         }
     }
+
+    LaunchedEffect(shouldFlip) {
+        if (shouldFlip) {
+            flipped = false
+            delay(600)
+            shouldFlip = false
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -299,7 +303,6 @@ fun ItemNotification(
                         IconButton(
                             onClick = {
                                 flipped = !flipped
-                                flippedState.value = flipped
                             },
                             modifier = Modifier
                                 .size(18.dp)
@@ -332,6 +335,7 @@ fun ItemNotification(
                                 .size(34.dp),
                             onClick = {
                                 onUpdate()
+                                shouldFlip = true
                             }) {
                             Icon(
                                 modifier = Modifier
@@ -348,8 +352,7 @@ fun ItemNotification(
                             onClick = {
                                 viewModel.cancelAlarm(notification.id)
                                 onEvent(NotificationEvent.DeleteNotification(notification))
-                                flipped = !flipped
-                                flippedState.value = flipped
+                                shouldFlip = true
                             }) {
                             Icon(
                                 modifier = Modifier
@@ -406,7 +409,6 @@ fun ItemNotification(
                         IconButton(
                             onClick = {
                                 flipped = !flipped
-                                flippedState.value = flipped
                             },
                             modifier = Modifier
                                 .size(18.dp)
