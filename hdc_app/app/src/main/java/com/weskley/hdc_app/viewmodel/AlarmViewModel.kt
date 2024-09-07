@@ -64,7 +64,7 @@ class AlarmViewModel @Inject constructor(
             NotificationEvent.SaveNotification -> {
                 viewModelScope.launch {
                     val title = state.value.title.value
-                    val body = state.value.body.value
+                    val body = state.value.type.value
                     val time = state.value.time.value
                     val image = state.value.image.value
 
@@ -74,7 +74,7 @@ class AlarmViewModel @Inject constructor(
 
                     val notification = CustomNotification(
                         title = title.trim(),
-                        body = body.trim(),
+                        type = body.trim(),
                         time = time,
                         image = image,
                     )
@@ -85,7 +85,7 @@ class AlarmViewModel @Inject constructor(
                     _state.update { clear ->
                         clear.copy(
                             title = mutableStateOf(""),
-                            body = mutableStateOf(""),
+//                            body = mutableStateOf(""),
                             time = mutableStateOf(""),
                             image = mutableStateOf(""),
                         )
@@ -96,18 +96,18 @@ class AlarmViewModel @Inject constructor(
             is NotificationEvent.UpdateNotification -> {
                 viewModelScope.launch {
                     val title = state.value.title.value.trim()
-                    val body = state.value.body.value.trim()
+//                    val body = state.value.body.value.trim()
                     val time = state.value.time.value
                     val image = state.value.image.value
                     val active = state.value.active.value
 
-                    if (title.isBlank() || body.isBlank() || time.isBlank()) {
+                    /*if (title.isBlank() || body.isBlank() || time.isBlank()) {
                         return@launch
-                    }
+                    }*/
 
                     val notification = event.notification.copy(
                         title = title,
-                        body = body,
+//                        body = body,
                         time = time,
                         image = image,
                         active = active
@@ -119,7 +119,7 @@ class AlarmViewModel @Inject constructor(
                     _state.update { clear ->
                         clear.copy(
                             title = mutableStateOf(""),
-                            body = mutableStateOf(""),
+//                            body = mutableStateOf(""),
                             time = mutableStateOf(""),
                             image = mutableStateOf(""),
                         )
@@ -140,7 +140,7 @@ class AlarmViewModel @Inject constructor(
                             _state.update {
                                 it.copy(
                                     title = mutableStateOf(notification.title),
-                                    body = mutableStateOf(notification.body),
+//                                    body = mutableStateOf(notification.body),
                                     time = mutableStateOf(notification.time),
                                     image = mutableStateOf(notification.image),
                                     active = mutableStateOf(notification.active),
@@ -158,7 +158,7 @@ class AlarmViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             title = mutableStateOf(""),
-                            body = mutableStateOf(""),
+//                            body = mutableStateOf(""),
                             time = mutableStateOf(""),
                             image = mutableStateOf(""),
                         )

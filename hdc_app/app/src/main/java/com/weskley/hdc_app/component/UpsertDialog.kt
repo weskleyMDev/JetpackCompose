@@ -102,12 +102,12 @@ fun UpsertDialog(
         LaunchedEffect(notificationUpdate) {
             if (isUpdate && notificationUpdate != null) {
                 state.title.value = notificationUpdate.title
-                state.body.value = notificationUpdate.body
+                state.type.value = notificationUpdate.type
                 state.time.value = notificationUpdate.time
                 state.image.value = notificationUpdate.image
             } else {
                 state.title.value = ""
-                state.body.value = ""
+                state.type.value = ""
                 state.time.value = ""
                 state.image.value = ""
             }
@@ -170,8 +170,8 @@ fun UpsertDialog(
                         maxLines = 2,
                     )
                     OutlinedTextField(
-                        value = state.body.value,
-                        onValueChange = { state.body.value = it },
+                        value = state.type.value,
+                        onValueChange = { state.type.value = it },
                         label = { Text(text = "Descrição") },
                         leadingIcon = {
                             Icon(

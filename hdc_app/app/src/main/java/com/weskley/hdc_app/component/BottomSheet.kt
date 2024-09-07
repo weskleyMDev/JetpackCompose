@@ -89,17 +89,17 @@ fun BottomSheet(
                         Text(text = bodyField)
                     },
                     textStyle = MaterialTheme.typography.bodyLarge,
-                    value = state.body.value,
+                    value = state.type.value,
                     onValueChange = { newBody ->
                         scope.launch {
-                            state.body.value = newBody
+                            state.type.value = newBody
                         }
                     },
                     minLines = 1,
                     maxLines = 2,
                     supportingText = {
                         Text(
-                            text = "${state.body.value.length} / 100",
+                            text = "${state.type.value.length} / 100",
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.End
                         )

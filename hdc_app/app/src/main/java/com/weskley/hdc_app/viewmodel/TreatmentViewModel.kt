@@ -43,13 +43,20 @@ class TreatmentViewModel @Inject constructor(
                     val title = treatmentState.value.title.value
                     val startDate = treatmentState.value.startDate.value
                     val endDate = treatmentState.value.endDate.value
+                    val duration = treatmentState.value.duration.value
                     if(title.isBlank() || startDate.isBlank() || endDate.isBlank()) {
                         return@launch
                     }
-                    val treatment = Treatment(
+                    val treatment = treatmentState.value.treatmentUpdated?.copy(
                         title = title,
                         startDate = startDate,
-                        endDate = endDate
+                        endDate = endDate,
+                        duration = duration.toIntOrNull() ?: 0
+                    ) ?: Treatment(
+                        title = title,
+                        startDate = startDate,
+                        endDate = endDate,
+                        duration = duration.toIntOrNull() ?: 0
                     )
                     viewModelScope.launch(Dispatchers.IO) {
                         treatmentDao.upsertTreatment(treatment)
@@ -58,37 +65,77 @@ class TreatmentViewModel @Inject constructor(
                         clear.copy(
                             title = mutableStateOf(""),
                             startDate = mutableStateOf(""),
-                            endDate = mutableStateOf("")
+                            endDate = mutableStateOf(""),
+                            duration = mutableStateOf(""),
+                            treatmentUpdated = null
                         )
                     }
                 }
             }
             TreatmentEvent.hideAddDialog -> {
-                _treatmentState.update {
-                    it.copy(
-                        addDialog = mutableStateOf(false)
-                    )
+                viewModelScope.launch {
+                    _treatmentState.update {
+                        it.copy(
+                            addDialog = mutableStateOf(false)
+                        )
+                    }
                 }
             }
             TreatmentEvent.hideStatusDialog -> {
-                _treatmentState.update {
-                    it.copy(
-                        statusDialog = mutableStateOf(false)
-                    )
+                viewModelScope.launch {
+                    _treatmentState.update {
+                        it.copy(
+                            statusDialog = mutableStateOf(false)
+                        )
+                    }
                 }
             }
             TreatmentEvent.showAddDialog -> {
-                _treatmentState.update {
-                    it.copy(
-                        addDialog = mutableStateOf(true)
-                    )
+                viewModelScope.launch {
+                    _treatmentState.update {
+                        it.copy(
+                            addDialog = mutableStateOf(true)
+                        )
+                    }
                 }
             }
             TreatmentEvent.showStatusDialog -> {
-                _treatmentState.update {
-                    it.copy(
-                        statusDialog = mutableStateOf(true)
-                    )
+                viewModelScope.launch {
+                    _treatmentState.update {
+                        it.copy(
+                            statusDialog = mutableStateOf(true)
+                        )
+                    }
+                }
+            }
+
+            is TreatmentEvent.UpdateTreatment -> {
+                viewModelScope.launch {
+                    _treatmentState.update {
+                        it.copy(
+                            addDialog = mutableStateOf(true),
+                            treatmentUpdated = event.treatment
+                        )
+                    }
+                }
+            }
+
+            TreatmentEvent.hideUpdateDialog -> {
+                viewModelScope.launch {
+                    _treatmentState.update {
+                        it.copy(
+                            updateDialog = mutableStateOf(false)
+                        )
+                    }
+                }
+            }
+            TreatmentEvent.showUpdateDialog -> {
+                viewModelScope.launch {
+                    _treatmentState.update {
+                        it.copy(
+                            updateDialog = mutableStateOf(true)
+                        )
+                    }
                 }
             }
         }

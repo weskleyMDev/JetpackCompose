@@ -1,5 +1,6 @@
 package com.weskley.hdc_app.screen
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,8 +12,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Add
+import androidx.compose.material.icons.twotone.ArrowDropDown
 import androidx.compose.material.icons.twotone.CalendarMonth
 import androidx.compose.material.icons.twotone.Delete
+import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Healing
 import androidx.compose.material.icons.twotone.PostAdd
 import androidx.compose.material3.AlertDialog
@@ -25,19 +29,24 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -45,6 +54,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.weskley.hdc_app.R
 import com.weskley.hdc_app.component.PercentBar
 import com.weskley.hdc_app.component.ShimmerEffectTreatment
 import com.weskley.hdc_app.event.TreatmentEvent
@@ -52,6 +62,7 @@ import com.weskley.hdc_app.model.Treatment
 import com.weskley.hdc_app.state.TreatmentState
 import com.weskley.hdc_app.viewmodel.TreatmentViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -62,31 +73,32 @@ fun TreatmentScreen(
     val treatmentState by treatmentViewModel.treatmentState.collectAsState()
     val treatmentEvent = treatmentViewModel::treatmentEvent
     val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
-    val duration = remember { mutableStateOf("") }
     val showDatePicker = remember { mutableStateOf(false) }
     val selectedDate = remember { mutableStateOf(LocalDate.now()) }
     val isLoadings = remember { mutableStateOf(true) }
+    val isUpdate = remember { mutableStateOf(true) }
+    val updatedTreatment = remember { mutableStateOf<Treatment?>(null) }
     LaunchedEffect(Unit) {
         delay(2000)
         isLoadings.value = false
+    }
+    fun calculateDuration() {
+        val startDate = selectedDate.value.format(formatter)
+        val endDate = try {
+            val daysToAdd = (treatmentState.duration.value.toLongOrNull() ?: 0) - 1
+            val endDate = selectedDate.value.plusDays(daysToAdd)
+            endDate.format(formatter)
+        } catch (e: Exception) {
+            selectedDate.value.format(formatter)
+        }
+        treatmentState.startDate.value = startDate
+        treatmentState.endDate.value = endDate
     }
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        fun calculateDuration() {
-            val startDate = selectedDate.value.format(formatter)
-            val endDate = try {
-                val daysToAdd = (duration.value.toLongOrNull() ?: 0) - 1
-                val endDate = selectedDate.value.plusDays(daysToAdd)
-                endDate.format(formatter)
-            } catch (e: Exception) {
-                selectedDate.value.format(formatter)
-            }
-            treatmentState.startDate.value = startDate
-            treatmentState.endDate.value = endDate
-        }
         if (showDatePicker.value) {
             DatePickerModal(
                 onDateSelected = {
@@ -97,8 +109,21 @@ fun TreatmentScreen(
             )
         }
         if (treatmentState.addDialog.value) {
+            if (isUpdate.value && updatedTreatment.value != null) {
+                treatmentState.title.value = updatedTreatment.value!!.title
+                treatmentState.startDate.value = updatedTreatment.value!!.startDate
+                treatmentState.endDate.value = updatedTreatment.value!!.endDate
+                treatmentState.duration.value = updatedTreatment.value!!.duration.toString()
+            } else {
+                treatmentState.title.value = ""
+                treatmentState.startDate.value = ""
+                treatmentState.endDate.value = ""
+                treatmentState.duration.value = ""
+            }
             AlertDialog(
                 onDismissRequest = {
+                    isUpdate.value = false
+                    updatedTreatment.value = null
                     treatmentEvent(TreatmentEvent.hideAddDialog)
                 },
                 confirmButton = {
@@ -106,28 +131,37 @@ fun TreatmentScreen(
                         calculateDuration()
                         treatmentEvent(TreatmentEvent.SaveTreatment)
                         treatmentEvent(TreatmentEvent.hideAddDialog)
-                        duration.value = ""
                         selectedDate.value = LocalDate.now()
                     }) {
-                        Text(text = "Salvar")
+                        Text(text = if (!isUpdate.value) "Salvar" else "Atualizar")
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = {
+                        isUpdate.value = false
+                        updatedTreatment.value = null
                         treatmentEvent(TreatmentEvent.hideAddDialog)
-                        duration.value = ""
                         selectedDate.value = LocalDate.now()
                     }) {
                         Text(text = "Cancelar")
                     }
                 },
                 title = {
-                    Text(text = "Adicionar Tratamento")
+                    Text(text =
+                    if (!isUpdate.value)
+                        "Adicionar Tratamento"
+                    else
+                        "Atualizar Tratamento"
+                    )
                 },
                 text = {
                     Column {
                         OutlinedTextField(
-                            value = selectedDate.value.format(formatter),
+                            value =
+                            if (!isUpdate.value)
+                                selectedDate.value.format(formatter)
+                            else
+                                treatmentState.startDate.value,
                             onValueChange = {},
                             label = {
                                 Text(text = "Data Inicial")
@@ -151,9 +185,9 @@ fun TreatmentScreen(
                             }
                         )
                         OutlinedTextField(
-                            value = duration.value,
+                            value = treatmentState.duration.value,
                             onValueChange = { newDuration ->
-                                duration.value = newDuration
+                                treatmentState.duration.value = newDuration
                             },
                             label = {
                                 Text(text = "Duração (em dias)")
@@ -192,11 +226,23 @@ fun TreatmentScreen(
             ) {
 
                 items(treatmentState.treatmentList) { item ->
-                    ShowStatus(item, treatmentEvent, treatmentState)
                     if (!isLoadings.value) {
                         TreatmentItem(
-                            item = item,
-                            onEvent = treatmentEvent
+                            treatment = item,
+                            onDelete = {
+                                isUpdate.value = false
+                                updatedTreatment.value = null
+                                treatmentEvent(TreatmentEvent.DeleteTreatment(item))
+                            },
+                            onUpdate = {
+                                isUpdate.value = true
+                                updatedTreatment.value = item
+                                treatmentEvent(TreatmentEvent.UpdateTreatment(updatedTreatment.value!!))
+                            },
+                            showStatus = {
+                                treatmentEvent(TreatmentEvent.showStatusDialog)
+                                treatmentState.title.value = it
+                            },
                         )
                     } else {
                         ShimmerEffectTreatment()
@@ -209,6 +255,8 @@ fun TreatmentScreen(
                 .padding(bottom = 8.dp, end = 8.dp)
                 .align(Alignment.End),
             onClick = {
+                isUpdate.value = false
+                updatedTreatment.value = null
                 treatmentEvent(TreatmentEvent.showAddDialog)
             }) {
             Icon(
@@ -217,13 +265,16 @@ fun TreatmentScreen(
             )
         }
     }
+    if (treatmentState.statusDialog.value) {
+        ShowStatus(treatmentEvent, treatmentState, treatmentState.title.value)
+    }
 }
 
 @Composable
 fun ShowStatus(
-    item: Treatment,
     treatmentEvent: (TreatmentEvent) -> Unit,
-    treatmentState: TreatmentState
+    treatmentState: TreatmentState,
+    title: String
 ) {
     val p = remember { mutableStateOf(6) }
     val d = remember { mutableStateOf(6) }
@@ -257,7 +308,7 @@ fun ShowStatus(
                     )
                     HorizontalDivider()
                     Text(
-                        text = item.title.replaceFirstChar { it.uppercase() },
+                        text = title.replaceFirstChar { it.uppercase() },
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -274,6 +325,9 @@ fun ShowStatus(
                     ) {
                         Text(text = "DIPIRONA:")
                         Text(text = "${d.value} / ${d1.value}")
+                    }
+                    IconButton(onClick = { /*TODO*/ }) {
+                        Icon(imageVector = Icons.TwoTone.Add, contentDescription = null)
                     }
                 }
             }
@@ -314,11 +368,17 @@ fun DatePickerModal(
 
 @Composable
 fun TreatmentItem(
-    item: Treatment,
-    onEvent: (TreatmentEvent) -> Unit
+    treatment: Treatment,
+    onUpdate: () -> Unit,
+    onDelete: () -> Unit,
+    showStatus: (String) -> Unit
 ) {
+    val buttonExpanded = remember { mutableStateOf(false) }
+    val rotationState = animateFloatAsState(
+        targetValue = if (buttonExpanded.value) 180f else 0f, label = ""
+    )
     ElevatedCard(onClick = {
-        onEvent(TreatmentEvent.showStatusDialog)
+        showStatus(treatment.title)
     }) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -331,26 +391,45 @@ fun TreatmentItem(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = item.title,
+                    text = treatment.title,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Text(text = "Data de início: ${item.startDate}")
-                Text(text = "Data de fim: ${item.endDate}")
+                Text(text = "Data de início: ${treatment.startDate}")
+                Text(text = "Data de fim: ${treatment.endDate}")
             }
-            IconButton(onClick = { onEvent(TreatmentEvent.DeleteTreatment(item)) }) {
+            IconButton(
+                modifier = Modifier.rotate(rotationState.value),
+                onClick = { buttonExpanded.value = !buttonExpanded.value }
+            ) {
                 Icon(
-                    imageVector = Icons.TwoTone.Delete, contentDescription = null,
+                    painterResource(R.drawable.twotone_arrow_left_24), contentDescription = null,
                     tint = Color.Red,
                     modifier = Modifier.size(28.dp)
                 )
             }
+            if (buttonExpanded.value) {
+                IconButton(onClick = {
+                    onUpdate()
+                    buttonExpanded.value = !buttonExpanded.value
+                }) {
+                    Icon(
+                        imageVector = Icons.TwoTone.Edit, contentDescription = null,
+                        tint = Color.Blue,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+                IconButton(onClick = {
+                    onDelete()
+                    buttonExpanded.value = !buttonExpanded.value
+                }) {
+                    Icon(
+                        imageVector = Icons.TwoTone.Delete, contentDescription = null,
+                        tint = Color.Red,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun TreatmentScreenPreview() {
-    TreatmentScreen()
 }

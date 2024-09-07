@@ -94,7 +94,7 @@ fun EditMedicationDialog(
     if (showDialog) {
         LaunchedEffect(showDialog) {
             state.title.value = medicamentoNome
-            state.body.value = medicamentoDose
+            state.type.value = medicamentoDose
         }
 
         AlertDialog(
@@ -123,8 +123,8 @@ fun EditMedicationDialog(
                         maxLines = 2
                     )
                     OutlinedTextField(
-                        value = state.body.value,
-                        onValueChange = { state.body.value = it },
+                        value = state.type.value,
+                        onValueChange = { state.type.value = it },
                         label = { Text(text = "Descrição") },
                         leadingIcon = {
                             Icon(

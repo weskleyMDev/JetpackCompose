@@ -131,7 +131,7 @@ fun AlarmScreen(
                     NotificationEvent.UpdateNotification(
                         updateNotification.value!!.copy(
                             title = fieldTitle.value,
-                            body = fieldBody.value,
+                            type = fieldBody.value,
                             time = fieldTime.value,
                             image = fieldImage.value,
                             active = false
@@ -315,7 +315,7 @@ fun ItemNotification(
                             )
                         }
                         Text(
-                            text = notification.body,
+                            text = notification.type,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = DarkBlue,

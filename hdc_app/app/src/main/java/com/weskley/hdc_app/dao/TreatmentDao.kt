@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TreatmentDao {
-
     @Upsert
     suspend fun upsertTreatment(treatment: Treatment)
 
@@ -18,5 +17,4 @@ interface TreatmentDao {
 
     @Query("SELECT * FROM treatments ORDER BY id ASC")
     fun getTreatments(): Flow<List<Treatment>>
-
 }

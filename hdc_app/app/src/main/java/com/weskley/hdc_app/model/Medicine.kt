@@ -5,13 +5,16 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import kotlinx.parcelize.Parcelize
 
-@Entity(tableName = "notifications")
+@Entity(tableName = "medicines")
 @Parcelize
-data class CustomNotification(
-    val title: String,
+data class Medicine(
+    val name: String,
+    val amount: String,
     val type: String,
     val time: String,
     val image: String,
+    val repetition: String,
+    val count: Int = 0,
     val active: Boolean = false,
 
     @PrimaryKey(autoGenerate = true)

@@ -123,7 +123,7 @@ fun AlarmCArd(
                             )
                         }
                         Text(
-                            text = item.notifications[index].body,
+                            text = item.notifications[index].type,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = DarkBlue,

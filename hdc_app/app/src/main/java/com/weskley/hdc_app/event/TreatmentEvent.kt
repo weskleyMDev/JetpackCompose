@@ -8,5 +8,8 @@ sealed interface TreatmentEvent {
     data object hideAddDialog : TreatmentEvent
     data object showStatusDialog : TreatmentEvent
     data object hideStatusDialog : TreatmentEvent
+    data object showUpdateDialog : TreatmentEvent
+    data object hideUpdateDialog : TreatmentEvent
     data class DeleteTreatment(val treatment: Treatment) : TreatmentEvent
+    data class UpdateTreatment(val treatment: Treatment) : TreatmentEvent
 }

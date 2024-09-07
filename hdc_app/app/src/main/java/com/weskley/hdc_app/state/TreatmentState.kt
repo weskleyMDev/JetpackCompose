@@ -9,6 +9,9 @@ data class TreatmentState(
     val title: MutableState<String> = mutableStateOf(""),
     val startDate: MutableState<String> = mutableStateOf(""),
     val endDate: MutableState<String> = mutableStateOf(""),
+    val duration: MutableState<String> = mutableStateOf(""),
     val addDialog: MutableState<Boolean> = mutableStateOf(false),
     val statusDialog: MutableState<Boolean> = mutableStateOf(false),
+    val updateDialog: MutableState<Boolean> = mutableStateOf(false),
+    val treatmentUpdated: Treatment? = null
 )

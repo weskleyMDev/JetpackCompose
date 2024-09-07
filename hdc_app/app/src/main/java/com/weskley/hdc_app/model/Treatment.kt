@@ -11,7 +11,8 @@ data class Treatment(
     val title: String,
     val startDate: String,
     val endDate: String,
+    val duration: Int,
 
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0
-) : Parcelable
+): Parcelable

@@ -117,7 +117,7 @@ class NotificationServiceImp @Inject constructor(
 
         val alarmIntent = Intent(context, NotificationReceiver::class.java).apply {
             putExtra("title", item.title)
-            putExtra("text", item.body)
+            putExtra("text", item.type)
             putExtra("imgUri", item.image)
             putExtra("time", item.time)
             putExtra("id", item.id+1)
@@ -155,7 +155,7 @@ class NotificationServiceImp @Inject constructor(
 
         val alarmIntent = Intent(context, NotificationReceiver::class.java).apply {
             putExtra("title", item.title)
-            putExtra("text", item.body)
+            putExtra("text", item.type)
             putExtra("imgUri", item.image)
             putExtra("time", item.time)
             putExtra("id", item.id)
@@ -189,7 +189,7 @@ class NotificationServiceImp @Inject constructor(
 
         val alarmIntent = Intent(context, NotificationReceiver::class.java).apply {
             putExtra("title", item.title)
-            putExtra("text", item.body)
+            putExtra("text", item.type)
             putExtra("img", item.image)
             putExtra("hour", item.time.split(":")[0].toInt())
             putExtra("minute", item.time.split(":")[1].toInt())
