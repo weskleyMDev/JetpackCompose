@@ -14,8 +14,9 @@ data class Medicine(
     val time: String,
     val image: String,
     val repetition: String,
-    val count: Int = 0,
-    val active: Boolean = false,
+    val count: Int,
+    val active: Boolean,
+    val treatmentId: Int?,
 
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0

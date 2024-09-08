@@ -2,6 +2,7 @@ package com.weskley.hdc_app.state
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import com.weskley.hdc_app.event.TreatmentEvent
 import com.weskley.hdc_app.model.Medicine
 
 data class MedicineState(
@@ -15,6 +16,6 @@ data class MedicineState(
     val count: MutableState<Int> = mutableStateOf(0),
     val active: MutableState<Boolean> = mutableStateOf(false),
     val showAddMedicine: MutableState<Boolean> = mutableStateOf(false),
-    val showUpdateMedicine: MutableState<Boolean> = mutableStateOf(false),
+    val treatmentId: MutableState<Int?> = mutableStateOf(null),
     val updateMedicine: Medicine? = null
 )

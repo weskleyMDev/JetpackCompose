@@ -33,7 +33,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun PercentBar(
-    canvasSize: Dp = 300.dp,
+    modifier: Modifier = Modifier,
+    canvasSize: Dp = 250.dp,
     indicatorValue: Short = 0,
     maxIndicatorValue: Short = 100,
     backgroundColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),

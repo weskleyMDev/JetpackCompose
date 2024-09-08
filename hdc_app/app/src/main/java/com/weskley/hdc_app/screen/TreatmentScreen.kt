@@ -1,18 +1,25 @@
 package com.weskley.hdc_app.screen
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
+import androidx.compose.material.icons.twotone.AddAPhoto
+import androidx.compose.material.icons.twotone.AddAlarm
 import androidx.compose.material.icons.twotone.ArrowDropDown
 import androidx.compose.material.icons.twotone.CalendarMonth
 import androidx.compose.material.icons.twotone.Delete
@@ -29,19 +36,18 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -50,28 +56,36 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.weskley.hdc_app.R
 import com.weskley.hdc_app.component.PercentBar
 import com.weskley.hdc_app.component.ShimmerEffectTreatment
+import com.weskley.hdc_app.event.MedicineEvent
 import com.weskley.hdc_app.event.TreatmentEvent
+import com.weskley.hdc_app.model.Medicine
 import com.weskley.hdc_app.model.Treatment
+import com.weskley.hdc_app.state.MedicineState
 import com.weskley.hdc_app.state.TreatmentState
+import com.weskley.hdc_app.viewmodel.MedicineViewModel
 import com.weskley.hdc_app.viewmodel.TreatmentViewModel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 @Composable
 fun TreatmentScreen(
-    treatmentViewModel: TreatmentViewModel = hiltViewModel()
+    treatmentViewModel: TreatmentViewModel = hiltViewModel(),
+    medicineViewModel: MedicineViewModel = hiltViewModel()
 ) {
     val treatmentState by treatmentViewModel.treatmentState.collectAsState()
     val treatmentEvent = treatmentViewModel::treatmentEvent
+    val medicineState by medicineViewModel.state.collectAsState()
+    val medicineEvent = medicineViewModel::medicineEvent
     val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
     val showDatePicker = remember { mutableStateOf(false) }
     val selectedDate = remember { mutableStateOf(LocalDate.now()) }
@@ -147,11 +161,12 @@ fun TreatmentScreen(
                     }
                 },
                 title = {
-                    Text(text =
-                    if (!isUpdate.value)
-                        "Adicionar Tratamento"
-                    else
-                        "Atualizar Tratamento"
+                    Text(
+                        text =
+                        if (!isUpdate.value)
+                            "Adicionar Tratamento"
+                        else
+                            "Atualizar Tratamento"
                     )
                 },
                 text = {
@@ -239,9 +254,9 @@ fun TreatmentScreen(
                                 updatedTreatment.value = item
                                 treatmentEvent(TreatmentEvent.UpdateTreatment(updatedTreatment.value!!))
                             },
-                            showStatus = {
+                            loadItem = {
                                 treatmentEvent(TreatmentEvent.showStatusDialog)
-                                treatmentState.title.value = it
+                                updatedTreatment.value = it
                             },
                         )
                     } else {
@@ -264,9 +279,15 @@ fun TreatmentScreen(
                 contentDescription = null
             )
         }
-    }
-    if (treatmentState.statusDialog.value) {
-        ShowStatus(treatmentEvent, treatmentState, treatmentState.title.value)
+        if (treatmentState.statusDialog.value) {
+            ShowStatus(
+                treatmentEvent,
+                treatmentState,
+                medicineEvent,
+                medicineState,
+                updatedTreatment.value
+            )
+        }
     }
 }
 
@@ -274,64 +295,248 @@ fun TreatmentScreen(
 fun ShowStatus(
     treatmentEvent: (TreatmentEvent) -> Unit,
     treatmentState: TreatmentState,
-    title: String
+    medicineEvent: (MedicineEvent) -> Unit,
+    medicineState: MedicineState,
+    treatment: Treatment?
 ) {
-    val p = remember { mutableStateOf(6) }
-    val d = remember { mutableStateOf(6) }
-    val p1 = remember { mutableStateOf(7) }
-    val d1 = remember { mutableStateOf(7) }
-    val count = remember {
-        mutableStateOf(
-            p.value + d.value
-        )
+    val filteredMedicines = medicineState.medicines.filter { it.treatmentId == treatment?.id }
+    val indicatorValue: Int
+    val maxIndicatorValue: Int
+    if (filteredMedicines.isEmpty()) {
+        indicatorValue = 0
+        maxIndicatorValue = 1
+    } else {
+        indicatorValue = filteredMedicines.sumOf { it.count }
+        val totalAmount = filteredMedicines.sumOf { it.amount.toIntOrNull() ?: 0 }
+        maxIndicatorValue = (treatment?.duration ?: 0) * totalAmount
     }
-    val total = remember {
-        mutableStateOf(
-            p1.value + d1.value
-        )
+
+    if (medicineState.showAddMedicine.value) {
+        CustomDialog(
+            title = {
+                Text(
+                    "Adicionar Medicamento",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            onDismiss = { medicineEvent(MedicineEvent.HideAddMedicineDialog) },
+            onConfirm = {
+                medicineEvent(MedicineEvent.SetTreatmentId(treatment?.id ?: 0))
+                medicineEvent(MedicineEvent.SaveMedicine)
+                medicineEvent(MedicineEvent.HideAddMedicineDialog)
+            }
+        ) {
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = medicineState.name.value,
+                onValueChange = { medicineState.name.value = it },
+                label = { Text(text = "Medicamento") }
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                OutlinedTextField(
+                    modifier = Modifier.width(100.dp),
+                    value = medicineState.amount.value,
+                    onValueChange = { medicineState.amount.value = it },
+                    label = {
+                        Text(
+                            text = "Quantidade",
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1
+                        )
+                    },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                OutlinedTextField(
+                    value = medicineState.type.value,
+                    onValueChange = { medicineState.type.value = it },
+                    label = { Text(text = "Tipo") },
+                    trailingIcon = {
+                        IconButton(onClick = { /*TODO*/ }) {
+                            Icon(
+                                imageVector = Icons.TwoTone.ArrowDropDown,
+                                contentDescription = null
+                            )
+                        }
+                    },
+                    readOnly = true
+                )
+            }
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = medicineState.time.value,
+                onValueChange = { medicineState.time.value = it },
+                label = { Text(text = "Hora") },
+                trailingIcon = {
+                    IconButton(onClick = { /*TODO*/ }) {
+                        Icon(
+                            modifier = Modifier.size(30.dp),
+                            imageVector = Icons.TwoTone.AddAlarm, contentDescription = null
+                        )
+                    }
+                },
+                readOnly = true
+            )
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = medicineState.image.value,
+                onValueChange = { medicineState.image.value = it },
+                label = { Text(text = "Imagem") },
+                trailingIcon = {
+                    IconButton(onClick = { /*TODO*/ }) {
+                        Icon(
+                            modifier = Modifier.size(30.dp),
+                            imageVector = Icons.TwoTone.AddAPhoto, contentDescription = null
+                        )
+                    }
+                },
+                readOnly = true
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = medicineState.repetition.value,
+                    onValueChange = { medicineState.repetition.value = it },
+                    label = { Text(text = "Repetição") },
+                    trailingIcon = {
+                        IconButton(onClick = { /*TODO*/ }) {
+                            Icon(
+                                imageVector = Icons.TwoTone.ArrowDropDown,
+                                contentDescription = null
+                            )
+                        }
+                    },
+                    readOnly = true
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Switch(checked = false, onCheckedChange = {})
+            }
+        }
     }
     if (treatmentState.statusDialog.value) {
-        AlertDialog(
-            onDismissRequest = { treatmentEvent(TreatmentEvent.hideStatusDialog) },
-            confirmButton = {
-                TextButton(onClick = { treatmentEvent(TreatmentEvent.hideStatusDialog) }) {
-                    Text(text = "OK")
-                }
-            },
-            text = {
+        CustomDialog(
+            title = {
                 Column(
+                    modifier = Modifier.padding(bottom = 8.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    PercentBar(
-                        indicatorValue = count.value.toShort(),
-                        maxIndicatorValue = total.value.toShort()
-                    )
-                    HorizontalDivider()
                     Text(
-                        text = title.replaceFirstChar { it.uppercase() },
-                        fontSize = 22.sp,
+                        text = "${treatment?.title?.uppercase()}",
+                        fontSize = 24.sp,
                         fontWeight = FontWeight.Bold
                     )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(text = "PARACETAMOL:")
-                        Text(text = "${p.value} / ${p1.value}")
-                    }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(text = "DIPIRONA:")
-                        Text(text = "${d.value} / ${d1.value}")
-                    }
-                    IconButton(onClick = { /*TODO*/ }) {
-                        Icon(imageVector = Icons.TwoTone.Add, contentDescription = null)
-                    }
+                    Text(
+                        text = "${treatment?.startDate?.uppercase()?.replace("-", "/")} ~ ${
+                            treatment?.endDate?.uppercase()?.replace("-", "/")
+                        }"
+                    )
+                }
+            },
+            onDismiss = { treatmentEvent(TreatmentEvent.hideStatusDialog) },
+            onConfirm = { treatmentEvent(TreatmentEvent.hideStatusDialog) },
+            toggle = {
+                IconButton(onClick = {
+                    medicineEvent(MedicineEvent.ShowAddMedicineDialog)
+                }) {
+                    Icon(
+                        modifier = Modifier.size(30.dp),
+                        imageVector = Icons.TwoTone.Add, contentDescription = null
+                    )
                 }
             }
-        )
+        ) {
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(8.dp))
+            PercentBar(
+                indicatorValue = indicatorValue.toShort(),
+                maxIndicatorValue = maxIndicatorValue.toShort(),
+            )
+            HorizontalDivider()
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+                    .height(150.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(filteredMedicines) { medicine ->
+                    val meta = ((treatment?.duration ?: 0) * medicine.amount.toIntOrNull()!!)
+                    MedicineItem(medicine = medicine, medicineEvent = medicineEvent, meta = meta)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun MedicineItem(
+    medicine: Medicine,
+    medicineEvent: (MedicineEvent) -> Unit,
+    meta: Int
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        /*IconButton(onClick = {
+            medicineEvent(MedicineEvent.IncrementCount(medicine.id, medicine.amount.toIntOrNull() ?: 0))
+        }) {
+            Icon(imageVector = Icons.TwoTone.Add, contentDescription = null)
+        }
+        */Text(text = medicine.name, modifier = Modifier.weight(1f))
+        Text(text = "${medicine.count} / $meta")
+    }
+}
+
+@Composable
+fun CustomDialog(
+    title: @Composable () -> Unit,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+    toggle: @Composable () -> Unit = {},
+    content: @Composable () -> Unit
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            shape = MaterialTheme.shapes.extraLarge,
+            tonalElevation = 6.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = MaterialTheme.shapes.extraLarge
+                )
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                title()
+                content()
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier
+                        .height(40.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    toggle()
+                    Spacer(modifier = Modifier.weight(1f))
+                    TextButton(onClick = onDismiss) { Text("CANCELAR") }
+                    TextButton(onClick = onConfirm) { Text("OK") }
+                }
+            }
+        }
     }
 }
 
@@ -371,14 +576,14 @@ fun TreatmentItem(
     treatment: Treatment,
     onUpdate: () -> Unit,
     onDelete: () -> Unit,
-    showStatus: (String) -> Unit
+    loadItem: (Treatment) -> Unit,
 ) {
     val buttonExpanded = remember { mutableStateOf(false) }
     val rotationState = animateFloatAsState(
         targetValue = if (buttonExpanded.value) 180f else 0f, label = ""
     )
     ElevatedCard(onClick = {
-        showStatus(treatment.title)
+        loadItem(treatment)
     }) {
         Row(
             modifier = Modifier.fillMaxWidth(),

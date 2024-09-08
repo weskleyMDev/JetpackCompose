@@ -1,5 +1,6 @@
 package com.weskley.hdc_app.viewmodel
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -60,26 +61,6 @@ class MedicineViewModel @Inject constructor(
                 }
             }
 
-            MedicineEvent.ShowUpdateMedicineDialog -> {
-                viewModelScope.launch {
-                    _state.update {
-                        it.copy(
-                            showUpdateMedicine = mutableStateOf(true)
-                        )
-                    }
-                }
-            }
-
-            MedicineEvent.HideUpdateMedicineDialog -> {
-                viewModelScope.launch {
-                    _state.update {
-                        it.copy(
-                            showUpdateMedicine = mutableStateOf(false)
-                        )
-                    }
-                }
-            }
-
             MedicineEvent.SaveMedicine -> {
                 viewModelScope.launch {
                     val name = state.value.name.value
@@ -88,15 +69,12 @@ class MedicineViewModel @Inject constructor(
                     val time = state.value.time.value
                     val image = state.value.image.value
                     val repetition = state.value.repetition.value
+                    val count = state.value.count.value
+                    val treatmentId = state.value.treatmentId.value ?: return@launch
 
-                    if (
-                        name.isBlank() ||
-                        amount.isBlank() ||
-                        type.isBlank() ||
-                        time.isBlank() ||
-                        image.isBlank() ||
-                        repetition.isBlank()
-                    ) {
+                    Log.d("MedicineViewModel", "Saving medicine with treatmentId: $treatmentId")
+
+                    if (name.isBlank() || amount.isBlank() || type.isBlank() || time.isBlank() || image.isBlank() || repetition.isBlank()) {
                         return@launch
                     }
 
@@ -107,29 +85,38 @@ class MedicineViewModel @Inject constructor(
                         time = time,
                         image = image,
                         repetition = repetition,
-                        active = false
+                        active = false,
+                        count = count,
+                        treatmentId = treatmentId
                     ) ?: Medicine(
                         name = name,
                         amount = amount,
                         type = type,
                         time = time,
                         image = image,
-                        repetition = repetition
+                        repetition = repetition,
+                        active = false,
+                        count = count,
+                        treatmentId = treatmentId
                     )
 
                     viewModelScope.launch(Dispatchers.IO) {
                         medicineDao.upsertMedicine(medicine)
                     }
 
-                    _state.update { clear ->
-                        clear.copy(
+                    _state.update {
+                        it.copy(
                             name = mutableStateOf(""),
                             amount = mutableStateOf(""),
                             type = mutableStateOf(""),
                             time = mutableStateOf(""),
                             image = mutableStateOf(""),
                             repetition = mutableStateOf(""),
-                            updateMedicine = null
+                            count = mutableStateOf(0),
+                            active = mutableStateOf(false),
+                            showAddMedicine = mutableStateOf(false),
+                            updateMedicine = null,
+                            treatmentId = mutableStateOf(null)
                         )
                     }
                 }
@@ -144,9 +131,27 @@ class MedicineViewModel @Inject constructor(
             is MedicineEvent.UpdateMedicine -> {
                 _state.update {
                     it.copy(
-                        showUpdateMedicine = mutableStateOf(true),
+                        showAddMedicine = mutableStateOf(true),
                         updateMedicine = event.medicine
                     )
+                }
+            }
+
+            is MedicineEvent.IncrementCount -> {
+                viewModelScope.launch(Dispatchers.IO) {
+                    val medicine = medicineDao.getMedicineById(event.id) ?: return@launch
+                    val newCount = medicine.count + event.amount
+                    val updatedMedicine = medicine.copy(count = newCount)
+                    medicineDao.upsertMedicine(updatedMedicine)
+                }
+            }
+
+            is MedicineEvent.SetTreatmentId -> {
+                viewModelScope.launch {
+                    Log.d("MedicineViewModel", "Setting treatmentId to: ${event.treatmentId}")
+                    _state.update {
+                        it.copy(treatmentId = mutableStateOf(event.treatmentId))
+                    }
                 }
             }
         }

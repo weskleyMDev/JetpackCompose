@@ -9,6 +9,6 @@ sealed interface MedicineEvent {
     data class UpdateMedicine(val medicine: Medicine) : MedicineEvent
     data object ShowAddMedicineDialog : MedicineEvent
     data object HideAddMedicineDialog : MedicineEvent
-    data object ShowUpdateMedicineDialog : MedicineEvent
-    data object HideUpdateMedicineDialog : MedicineEvent
+    data class IncrementCount(val id: Int, val amount: Int) : MedicineEvent
+    data class SetTreatmentId(val treatmentId: Int) : MedicineEvent
 }

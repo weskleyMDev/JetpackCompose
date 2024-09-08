@@ -13,5 +13,6 @@ data class TreatmentState(
     val addDialog: MutableState<Boolean> = mutableStateOf(false),
     val statusDialog: MutableState<Boolean> = mutableStateOf(false),
     val updateDialog: MutableState<Boolean> = mutableStateOf(false),
-    val treatmentUpdated: Treatment? = null
+    val treatmentUpdated: Treatment? = null,
+    val treatmentId: MutableState<Int> = mutableStateOf(0)
 )
