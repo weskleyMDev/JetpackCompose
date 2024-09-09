@@ -1,15 +1,20 @@
 package com.weskley.hdc_app.screen
 
+import android.content.Context
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -20,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.AddAPhoto
 import androidx.compose.material.icons.twotone.AddAlarm
+import androidx.compose.material.icons.twotone.AddPhotoAlternate
 import androidx.compose.material.icons.twotone.ArrowDropDown
 import androidx.compose.material.icons.twotone.CalendarMonth
 import androidx.compose.material.icons.twotone.Delete
@@ -29,8 +35,11 @@ import androidx.compose.material.icons.twotone.PostAdd
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -48,10 +57,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -61,8 +72,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.weskley.hdc_app.R
+import com.weskley.hdc_app.component.MyTimePicker
 import com.weskley.hdc_app.component.PercentBar
 import com.weskley.hdc_app.component.ShimmerEffectTreatment
 import com.weskley.hdc_app.event.MedicineEvent
@@ -74,8 +87,13 @@ import com.weskley.hdc_app.state.TreatmentState
 import com.weskley.hdc_app.viewmodel.MedicineViewModel
 import com.weskley.hdc_app.viewmodel.TreatmentViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import java.io.File
+import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Calendar
+import java.util.Locale
 
 @Composable
 fun TreatmentScreen(
@@ -291,6 +309,7 @@ fun TreatmentScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShowStatus(
     treatmentEvent: (TreatmentEvent) -> Unit,
@@ -299,6 +318,16 @@ fun ShowStatus(
     medicineState: MedicineState,
     treatment: Treatment?
 ) {
+    val context = LocalContext.current.applicationContext
+    val openPicker = remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val isOn = remember { mutableStateOf(false) }
+    val types = listOf("", "Comprimido", "Dosador(ml)", "Gotas")
+    val repetition = listOf("", "2", "4", "6", "8", "12", "24")
+    val expandedTypes = remember { mutableStateOf(false) }
+    val expandedRepetition = remember { mutableStateOf(false) }
+    val selectedTextTypes = remember { mutableStateOf(types[0]) }
+    val selectedTextRepetition = remember { mutableStateOf(repetition[0]) }
     val filteredMedicines = medicineState.medicines.filter { it.treatmentId == treatment?.id }
     val indicatorValue: Int
     val maxIndicatorValue: Int
@@ -310,7 +339,29 @@ fun ShowStatus(
         val totalAmount = filteredMedicines.sumOf { it.amount.toIntOrNull() ?: 0 }
         maxIndicatorValue = (treatment?.duration ?: 0) * totalAmount
     }
-
+    var imageUri: Uri? = null
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            medicineState.image.value = imageUri.toString()
+        }
+    }
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            val imagePath = copyImageToAppDirectory(context, it)
+            medicineState.image.value = imagePath
+            Toast.makeText(context, "Imagem selecionada da galeria", Toast.LENGTH_SHORT).show()
+        } ?: run {
+            Toast.makeText(context, "Nenhuma imagem selecionada", Toast.LENGTH_SHORT).show()
+        }
+    }
+    fun createImageUri(context: Context): Uri {
+        val file = File(context.filesDir, "HDC_${System.currentTimeMillis()}.jpg")
+        return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+    }
     if (medicineState.showAddMedicine.value) {
         CustomDialog(
             title = {
@@ -337,7 +388,7 @@ fun ShowStatus(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 OutlinedTextField(
-                    modifier = Modifier.width(100.dp),
+                    modifier = Modifier.width(130.dp),
                     value = medicineState.amount.value,
                     onValueChange = { medicineState.amount.value = it },
                     label = {
@@ -351,20 +402,36 @@ fun ShowStatus(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                OutlinedTextField(
-                    value = medicineState.type.value,
-                    onValueChange = { medicineState.type.value = it },
-                    label = { Text(text = "Tipo") },
-                    trailingIcon = {
-                        IconButton(onClick = { /*TODO*/ }) {
-                            Icon(
-                                imageVector = Icons.TwoTone.ArrowDropDown,
-                                contentDescription = null
+                ExposedDropdownMenuBox(
+                    expanded = expandedTypes.value,
+                    onExpandedChange = {expandedTypes.value = !expandedTypes.value}
+                ) {
+                    OutlinedTextField(
+                        value = selectedTextTypes.value,
+                        onValueChange = {},
+                        label = { Text(text = "Tipo") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedTypes.value)
+                        },
+                        readOnly = true,
+                        modifier = Modifier.menuAnchor()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expandedTypes.value,
+                        onDismissRequest = { expandedTypes.value = false }
+                    ) {
+                        types.forEach { type ->
+                            DropdownMenuItem(
+                                text = { Text(text = type) },
+                                onClick = {
+                                    selectedTextTypes.value = type
+                                    expandedTypes.value = false
+                                    medicineState.type.value = type
+                                }
                             )
                         }
-                    },
-                    readOnly = true
-                )
+                    }
+                }
             }
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
@@ -372,7 +439,7 @@ fun ShowStatus(
                 onValueChange = { medicineState.time.value = it },
                 label = { Text(text = "Hora") },
                 trailingIcon = {
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = { openPicker.value = true }) {
                         Icon(
                             modifier = Modifier.size(30.dp),
                             imageVector = Icons.TwoTone.AddAlarm, contentDescription = null
@@ -387,34 +454,68 @@ fun ShowStatus(
                 onValueChange = { medicineState.image.value = it },
                 label = { Text(text = "Imagem") },
                 trailingIcon = {
-                    IconButton(onClick = { /*TODO*/ }) {
-                        Icon(
-                            modifier = Modifier.size(30.dp),
-                            imageVector = Icons.TwoTone.AddAPhoto, contentDescription = null
-                        )
-                    }
-                },
-                readOnly = true
-            )
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value = medicineState.repetition.value,
-                    onValueChange = { medicineState.repetition.value = it },
-                    label = { Text(text = "Repetição") },
-                    trailingIcon = {
-                        IconButton(onClick = { /*TODO*/ }) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = {
+                            imageUri = createImageUri(context)
+                            cameraLauncher.launch(imageUri!!)
+                        }) {
                             Icon(
-                                imageVector = Icons.TwoTone.ArrowDropDown,
-                                contentDescription = null
+                                modifier = Modifier.size(30.dp),
+                                imageVector = Icons.TwoTone.AddAPhoto, contentDescription = null
                             )
                         }
-                    },
-                    readOnly = true
+                        IconButton(onClick = { galleryLauncher.launch("image/jpeg") }) {
+                            Icon(
+                                modifier = Modifier.size(30.dp),
+                                imageVector = Icons.TwoTone.AddPhotoAlternate, contentDescription = null
+                            )
+                        }
+                    }
+                },
+                readOnly = true,
+                singleLine = true
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(32.dp),
+            ) {
+                ExposedDropdownMenuBox(
+                    expanded = expandedRepetition.value,
+                    onExpandedChange = {expandedRepetition.value = !expandedRepetition.value}
+                ) {
+                    OutlinedTextField(
+                        enabled = isOn.value,
+                        value = selectedTextRepetition.value,
+                        onValueChange = {},
+                        label = { Text(text = "Repetição(Horas)") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedRepetition.value)
+                        },
+                        readOnly = true,
+                        modifier = Modifier.menuAnchor().width(250.dp)
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expandedRepetition.value,
+                        onDismissRequest = { expandedRepetition.value = false }
+                    ) {
+                        repetition.forEach { repetition ->
+                            DropdownMenuItem(
+                                text = { Text(text = repetition) },
+                                onClick = {
+                                    selectedTextRepetition.value = repetition
+                                    expandedRepetition.value = false
+                                    medicineState.repetition.value = repetition
+                                }
+                            )
+                        }
+                    }
+                }
+                Switch(
+                    checked = isOn.value,
+                    onCheckedChange = {isOn.value = it}
                 )
-                Spacer(modifier = Modifier.width(16.dp))
-                Switch(checked = false, onCheckedChange = {})
             }
         }
     }
@@ -470,6 +571,21 @@ fun ShowStatus(
                 }
             }
         }
+    }
+    if (openPicker.value) {
+        val calendar = Calendar.getInstance()
+        val formatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
+        MyTimePicker(
+            onDismiss = { scope.launch { openPicker.value = false } },
+            onConfirm = { time ->
+                scope.launch {
+                    openPicker.value = false
+                    calendar.set(Calendar.HOUR_OF_DAY, time.hour)
+                    calendar.set(Calendar.MINUTE, time.minute)
+                    medicineState.time.value = formatter.format(calendar.time)
+                }
+            }
+        )
     }
 }
 
@@ -637,4 +753,16 @@ fun TreatmentItem(
             }
         }
     }
+}
+
+private fun copyImageToAppDirectory(context: Context, uri: Uri): String {
+    val inputStream = context.contentResolver.openInputStream(uri) ?: return ""
+    val fileName = "HDC_${System.currentTimeMillis()}.jpg"
+    val outputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE)
+    inputStream.use { input ->
+        outputStream.use { output ->
+            input.copyTo(output)
+        }
+    }
+    return context.getFileStreamPath(fileName).absolutePath
 }

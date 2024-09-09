@@ -1,5 +1,6 @@
 package com.weskley.hdc_app.screen
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -35,9 +36,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -163,6 +166,65 @@ fun UpdateDialog(
             }
         )
     }
+}
+
+@Composable
+fun GetUserDialog(
+    onDismiss: () -> Unit,
+    userState: UserState,
+    userEvent: (UserEvent) -> Unit
+) {
+    val context = LocalContext.current.applicationContext
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    userEvent(UserEvent.SaveUser)
+                    onDismiss()
+                    Toast.makeText(
+                        context,
+                        "Usuário adicionado com sucesso!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            ) {
+                Text(text = "SALVAR")
+            }
+        },
+        title = { Text(text = "ADICIONAR USUÁRIO") },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedTextField(
+                    value = userState.name.value,
+                    onValueChange = { userState.name.value = it },
+                    label = { Text(text = "Nome", overflow = TextOverflow.Ellipsis) },
+                    maxLines = 1,
+                )
+                OutlinedTextField(
+                    value = userState.age.value,
+                    onValueChange = { userState.age.value = it },
+                    label = { Text(text = "Idade", overflow = TextOverflow.Ellipsis) },
+                    maxLines = 1,
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
+                )
+                OutlinedTextField(
+                    value = userState.bloodType.value,
+                    onValueChange = { userState.bloodType.value = it },
+                    label = {
+                        Text(
+                            text = "Tipo Sanguíneo",
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    },
+                    placeholder = { Text(text = "EX.: A-, O+...") },
+                    maxLines = 1,
+                )
+            }
+        }
+    )
 }
 
 @Composable

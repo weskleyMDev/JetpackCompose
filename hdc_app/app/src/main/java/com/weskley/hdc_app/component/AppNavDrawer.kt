@@ -41,6 +41,7 @@ import com.weskley.hdc_app.R
 import com.weskley.hdc_app.constant.Constants
 import com.weskley.hdc_app.controller.ScreenController
 import com.weskley.hdc_app.event.UserEvent
+import com.weskley.hdc_app.screen.GetUserDialog
 import com.weskley.hdc_app.state.UserState
 import com.weskley.hdc_app.ui.theme.DarkBlue
 import com.weskley.hdc_app.viewmodel.AlarmViewModel
@@ -49,25 +50,12 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun AppNavDrawer(
-    hasDialogBeenShown: () -> Boolean,
-    setDialogShown: () -> Unit,
     mainViewModel: AlarmViewModel = hiltViewModel(),
-    userViewModel: UserViewModel = hiltViewModel()
 ) {
     val coroutineScope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val context = LocalContext.current.applicationContext
     val navController = rememberNavController()
-    var showDialog = remember { mutableStateOf(!hasDialogBeenShown()) }
-    val userState by userViewModel.userState.collectAsState()
-    val userEvent = userViewModel::userEvent
-
-    if (showDialog.value) {
-        GetUserDialog(onDismiss = {
-            showDialog.value = false
-            setDialogShown()
-        }, userState = userState, userEvent = userEvent)
-    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -166,63 +154,4 @@ fun AppNavDrawer(
     ) {
         AppBarTop(drawerState, navController)
     }
-}
-
-@Composable
-fun GetUserDialog(
-    onDismiss: () -> Unit,
-    userState: UserState,
-    userEvent: (UserEvent) -> Unit
-) {
-    val context = LocalContext.current.applicationContext
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    userEvent(UserEvent.SaveUser)
-                    onDismiss()
-                    Toast.makeText(
-                        context,
-                        "Usuário adicionado com sucesso!",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            ) {
-                Text(text = "SALVAR")
-            }
-        },
-        title = { Text(text = "ADICIONAR USUÁRIO") },
-        text = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                OutlinedTextField(
-                    value = userState.name.value,
-                    onValueChange = { userState.name.value = it },
-                    label = { Text(text = "Nome", overflow = TextOverflow.Ellipsis) },
-                    maxLines = 1,
-                )
-                OutlinedTextField(
-                    value = userState.age.value,
-                    onValueChange = { userState.age.value = it },
-                    label = { Text(text = "Idade", overflow = TextOverflow.Ellipsis) },
-                    maxLines = 1,
-                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
-                )
-                OutlinedTextField(
-                    value = userState.bloodType.value,
-                    onValueChange = { userState.bloodType.value = it },
-                    label = {
-                        Text(
-                            text = "Tipo Sanguíneo",
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    },
-                    placeholder = { Text(text = "EX.: A-, O+...") },
-                    maxLines = 1,
-                )
-            }
-        }
-    )
 }
