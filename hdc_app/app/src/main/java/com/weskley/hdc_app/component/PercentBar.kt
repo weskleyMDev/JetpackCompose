@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -34,13 +35,13 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun PercentBar(
     modifier: Modifier = Modifier,
-    canvasSize: Dp = 250.dp,
+    canvasSize: Dp = 200.dp,
     indicatorValue: Short = 0,
     maxIndicatorValue: Short = 100,
     backgroundColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-    indicatorBackgroundWidth: Float = 100f,
+    indicatorBackgroundWidth: Float = 80f,
     foregroundColor: Color = MaterialTheme.colorScheme.primary,
-    indicatorForegroundWidth: Float = 100f,
+    indicatorForegroundWidth: Float = 80f,
     strokeCap: StrokeCap = StrokeCap.Round,
     bigTextSize: TextUnit = MaterialTheme.typography.titleLarge.fontSize,
     bigTextColor: Color = MaterialTheme.colorScheme.onSurface,

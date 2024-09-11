@@ -1,5 +1,6 @@
 package com.weskley.hdc_app.screen
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -31,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,21 +46,45 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.room.Room
+import androidx.room.RoomDatabase
 import com.weskley.hdc_app.R
+import com.weskley.hdc_app.dao.MedicineDao
+import com.weskley.hdc_app.database.TreatmentDatabase
+import com.weskley.hdc_app.event.MedicineEvent
 import com.weskley.hdc_app.event.UserEvent
 import com.weskley.hdc_app.model.User
 import com.weskley.hdc_app.state.UserState
 import com.weskley.hdc_app.ui.theme.DarkBlue
 import com.weskley.hdc_app.ui.theme.MediumDarkBlue
+import com.weskley.hdc_app.viewmodel.MedicineViewModel
 import com.weskley.hdc_app.viewmodel.UserViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Composable
 fun ProfileScreen(
-    userViewModel: UserViewModel = hiltViewModel()
+    viewModel: MedicineViewModel = hiltViewModel()
 ) {
-    val userState by userViewModel.userState.collectAsState()
-    val userEvent = userViewModel::userEvent
-    UpdateDialog(
+    val context = LocalContext.current.applicationContext
+    val db = Room.databaseBuilder(
+        context,
+        TreatmentDatabase::class.java,
+        TreatmentDatabase.DATABASE_NAME
+    ).build()
+    val medicineDao = db.medicineDao()
+    fun incrementProfile(id: Int, amount: Int) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val medicine = medicineDao.getMedicineById(id) ?: return@launch
+            val newCount = medicine.count + amount
+            val updatedMedicine = medicine.copy(count = newCount)
+            medicineDao.upsertMedicine(updatedMedicine)
+        }
+    }
+    /*UpdateDialog(
         openDialog = userState.openDialog.value,
         userState = userState,
         onConfirm = {
@@ -68,7 +94,7 @@ fun ProfileScreen(
             userEvent(UserEvent.HideDialog)
         },
         userUpdate = userState.userUpdated
-    )
+    )*/
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -81,7 +107,7 @@ fun ProfileScreen(
                 .background(Color.LightGray),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            items(userState.users) { user ->
+            /*items(userState.users) { user ->
                 UserItem(user)
                 Button(
                     onClick = {
@@ -97,7 +123,7 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.width(8.dp))
                     Icon(imageVector = Icons.TwoTone.Edit, contentDescription = null)
                 }
-            }
+            }*/
         }
     }
 }

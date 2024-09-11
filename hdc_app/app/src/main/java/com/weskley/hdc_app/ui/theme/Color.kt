@@ -22,3 +22,10 @@ val White = Color(0xffffffff)
 //CARD GRADIENT
 val color1 = Color(0xff283048)
 val color2 = Color(0xff859398)
+
+val color3 = Color(0xff3a6073)
+val color4 = Color(0xff16222a)
+
+val color5 = Color(0xff0f0c29)
+val color6 = Color(0xff302b63)
+val color7 = Color(0xff24243e)

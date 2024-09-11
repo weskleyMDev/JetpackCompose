@@ -1,5 +1,11 @@
 package com.weskley.hdc_app.screen
 
+import android.content.Context
+import android.net.Uri
+import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -9,27 +15,40 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.twotone.AddAPhoto
+import androidx.compose.material.icons.twotone.AddAlarm
+import androidx.compose.material.icons.twotone.AddPhotoAlternate
 import androidx.compose.material.icons.twotone.CrisisAlert
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.KeyboardDoubleArrowDown
 import androidx.compose.material.icons.twotone.NotificationsActive
 import androidx.compose.material.icons.twotone.NotificationsOff
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -40,6 +59,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,43 +68,110 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.room.Room
 import coil.compose.rememberAsyncImagePainter
 import com.weskley.hdc_app.R
+import com.weskley.hdc_app.component.MyTimePicker
 import com.weskley.hdc_app.component.ShimmerEffect
-import com.weskley.hdc_app.component.UpsertDialog
-import com.weskley.hdc_app.event.NotificationEvent
-import com.weskley.hdc_app.model.CustomNotification
+import com.weskley.hdc_app.controller.ScreenController
+import com.weskley.hdc_app.database.TreatmentDatabase
+import com.weskley.hdc_app.event.MedicineEvent
+import com.weskley.hdc_app.model.Medicine
 import com.weskley.hdc_app.ui.theme.Blue
 import com.weskley.hdc_app.ui.theme.DarkBlue
 import com.weskley.hdc_app.ui.theme.LightBlue
 import com.weskley.hdc_app.ui.theme.MediumDarkBlue
 import com.weskley.hdc_app.ui.theme.Turquoise
 import com.weskley.hdc_app.viewmodel.AlarmViewModel
+import com.weskley.hdc_app.viewmodel.MedicineViewModel
+import com.weskley.hdc_app.viewmodel.TreatmentViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlarmScreen(
-    viewModel: AlarmViewModel = hiltViewModel()
+    viewModel: MedicineViewModel = hiltViewModel(),
+    navController: NavController
 ) {
-    val openDialog = remember { mutableStateOf(false) }
+    val context = LocalContext.current.applicationContext
+    val db = Room.databaseBuilder(
+        context,
+        TreatmentDatabase::class.java,
+        TreatmentDatabase.DATABASE_NAME
+    ).build()
+    val medicineDao = db.medicineDao()
+    Log.d("ProfileScreen", "ViewModel instance in ProfileScreen: $viewModel, HashCode: ${System.identityHashCode(viewModel)}")
     val isUpdate = remember { mutableStateOf(false) }
-    val updateNotification = remember {
-        mutableStateOf<CustomNotification?>(null)
+    val updateMedicine = remember {
+        mutableStateOf<Medicine?>(null)
     }
-    val state by viewModel.state.collectAsState()
-    val fieldTitle = remember { mutableStateOf("") }
-    val fieldBody = remember { mutableStateOf("") }
-    val fieldTime = remember { mutableStateOf("") }
-    val fieldImage = remember { mutableStateOf("") }
+    val medicineState by viewModel.state.collectAsState()
+    val medicineEvent = viewModel::medicineEvent
     val isLoading = remember { mutableStateOf(true) }
     val showDialog = remember { mutableStateOf(true) }
+    val openTimePicker = remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val types = listOf("", "Comprimido", "Dosador(ml)", "Gotas")
+    val repetition = listOf("", "2", "4", "6", "8", "12", "24")
+    val expandedTypes = remember { mutableStateOf(false) }
+    val expandedRepetition = remember { mutableStateOf(false) }
+    val selectedTextTypes = remember { mutableStateOf(types[0]) }
+    val selectedTextRepetition = remember { mutableStateOf(repetition[0]) }
+    val showAddDialog = remember { mutableStateOf(false) }
+    val calendar = Calendar.getInstance()
+    val formatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
+    var imageUri: Uri? = null
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            medicineState.image.value = imageUri.toString()
+        }
+    }
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            val imagePath = copyImageToAppDirectory(context, it)
+            medicineState.image.value = imagePath
+            Toast.makeText(context, "Imagem selecionada da galeria", Toast.LENGTH_SHORT).show()
+        } ?: run {
+            Toast.makeText(context, "Nenhuma imagem selecionada", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun createImageUri(context: Context): Uri {
+        val file = File(context.filesDir, "HDC_${System.currentTimeMillis()}.jpg")
+        return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+    }
+    fun incrementAlarm(id: Int, amount: Int) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val medicine = medicineDao.getMedicineById(id) ?: return@launch
+            val newCount = medicine.count + amount
+            val updatedMedicine = medicine.copy(count = newCount)
+            medicineDao.upsertMedicine(updatedMedicine)
+        }
+    }
 
     LaunchedEffect(isLoading.value) {
         delay(2000)
@@ -115,43 +202,66 @@ fun AlarmScreen(
             }
         )
     }
-    UpsertDialog(
-        openDialog = openDialog.value,
-        isUpdate = isUpdate.value,
-        notificationUpdate = updateNotification.value,
-        state = state,
-        onDismiss = {
-            openDialog.value = false
-            isUpdate.value = false
-            updateNotification.value = null
-        },
-        onConfirm = {
-            if (isUpdate.value && updateNotification.value != null) {
-                viewModel.onEvent(
-                    NotificationEvent.UpdateNotification(
-                        updateNotification.value!!.copy(
-                            title = fieldTitle.value,
-                            type = fieldBody.value,
-                            time = fieldTime.value,
-                            image = fieldImage.value,
-                            active = false
-                        )
-                    )
-                )
-                viewModel.cancelAlarm(updateNotification.value!!.id)
-            } else {
-                viewModel.onEvent(
-                    NotificationEvent.SaveNotification
-                )
+    if (openTimePicker.value) {
+        MyTimePicker(
+            onDismiss = { scope.launch { openTimePicker.value = false } },
+            onConfirm = { time ->
+                scope.launch {
+                    openTimePicker.value = false
+                    calendar.set(Calendar.HOUR_OF_DAY, time.hour)
+                    calendar.set(Calendar.MINUTE, time.minute)
+                    medicineState.time.value = formatter.format(calendar.time)
+                }
+            }
+        )
+    }
+    if (medicineState.showAddMedicine.value) {
+        // Atualize o estado do formulário baseado em isUpdate
+        val isUpdating = isUpdate.value && updateMedicine.value != null
+        if (isUpdating) {
+            medicineState.name.value = updateMedicine.value!!.name
+            medicineState.amount.value = updateMedicine.value!!.amount
+            medicineState.type.value = updateMedicine.value!!.type
+            medicineState.time.value = updateMedicine.value!!.time
+            medicineState.image.value = updateMedicine.value!!.image
+            medicineState.repetition.value = updateMedicine.value!!.repetition
+        } else {
+            medicineState.name.value = ""
+            medicineState.amount.value = ""
+            medicineState.type.value = ""
+            medicineState.time.value = ""
+            medicineState.image.value = ""
+            medicineState.repetition.value = ""
+        }
+
+        CustomAddDialog(
+            title = {},
+            onDismiss = { medicineState.showAddMedicine.value = false },
+            onConfirm = { medicineState.showAddMedicine.value = false },
+        ) {
+            OutlinedTextField(
+                value = medicineState.name.value,
+                onValueChange = { medicineState.name.value = it },
+            )
+            OutlinedTextField(
+                value = medicineState.amount.value,
+                onValueChange = { medicineState.amount.value = it },
+            )
+            OutlinedTextField(
+                value = medicineState.time.value,
+                onValueChange = { /*não mudar o valor aqui*/ },
+            )
+            IconButton(onClick = { openTimePicker.value = true }) {
+                Icon(imageVector = Icons.TwoTone.AddAlarm, contentDescription = null)
             }
         }
-    )
+    }
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (state.notifications.isEmpty()) {
+        if (medicineState.medicines.isEmpty()) {
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center,
@@ -177,15 +287,15 @@ fun AlarmScreen(
                     .padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(state.notifications) { item ->
+                items(medicineState.medicines) { item ->
                     if (!isLoading.value) {
-                        ItemNotification(
-                            notification = item,
-                            onEvent = viewModel::onEvent,
+                        MedicineItem(
+                            medicine = item,
+                            onEvent = viewModel::medicineEvent,
                             onUpdate = {
-                                openDialog.value = true
                                 isUpdate.value = true
-                                updateNotification.value = item
+                                updateMedicine.value = item
+                                medicineEvent(MedicineEvent.UpdateMedicine(updateMedicine.value!!))
                             }
                         )
                     } else {
@@ -199,12 +309,61 @@ fun AlarmScreen(
                 .padding(bottom = 8.dp, end = 8.dp)
                 .align(Alignment.End),
             onClick = {
-                openDialog.value = true
-                isUpdate.value = false
-                updateNotification.value = null
+                /*isUpdate.value = false
+                updateMedicine.value = null
+                medicineEvent(MedicineEvent.ShowAddMedicineDialog)*/
+                navController.navigate(ScreenController.Treatment.route)
             },
         ) {
             Icon(imageVector = Icons.Filled.Add, contentDescription = null)
+        }
+    }
+}
+
+@Composable
+fun CustomAddDialog(
+    title: @Composable () -> Unit,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+    toggle: @Composable () -> Unit = {},
+    content: @Composable () -> Unit
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            shape = MaterialTheme.shapes.extraLarge,
+            tonalElevation = 6.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = MaterialTheme.shapes.extraLarge
+                )
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                title()
+                content()
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier
+                        .height(40.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    toggle()
+                    Spacer(modifier = Modifier.weight(1f))
+                    TextButton(onClick = onDismiss) { Text("CANCELAR") }
+                    TextButton(onClick = onConfirm) { Text("OK") }
+                }
+            }
         }
     }
 }
@@ -224,17 +383,17 @@ fun DisplayImage(imagePath: String) {
 }
 
 @Composable
-fun ItemNotification(
-    notification: CustomNotification,
-    onEvent: (NotificationEvent) -> Unit,
+fun MedicineItem(
+    medicine: Medicine,
+    onEvent: (MedicineEvent) -> Unit,
     onUpdate: () -> Unit,
     viewModel: AlarmViewModel = hiltViewModel(),
 ) {
     val isActive = remember {
-        mutableStateOf(notification.active)
+        mutableStateOf(medicine.active)
     }
-    LaunchedEffect(notification.active) {
-        isActive.value = notification.active
+    LaunchedEffect(medicine.active) {
+        isActive.value = medicine.active
     }
     var flipped by remember { mutableStateOf(false) }
     var shouldFlip by remember { mutableStateOf(false) }
@@ -246,9 +405,9 @@ fun ItemNotification(
 
     fun onSwitchOn(isChecked: Boolean) {
         if (isChecked) {
-            viewModel.setAlarm(notification)
+            viewModel.setAlarm(medicine)
         } else {
-            viewModel.cancelAlarm(notification.id)
+            viewModel.cancelAlarm(medicine.id)
         }
     }
 
@@ -294,7 +453,7 @@ fun ItemNotification(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    DisplayImage(imagePath = notification.image)
+                    DisplayImage(imagePath = medicine.image)
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -315,7 +474,7 @@ fun ItemNotification(
                             )
                         }
                         Text(
-                            text = notification.type,
+                            text = "${medicine.amount} - ${medicine.type}",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = DarkBlue,
@@ -330,6 +489,7 @@ fun ItemNotification(
                             .height(80.dp),
                     ) {
                         IconButton(
+                            enabled = false,
                             modifier = Modifier
                                 .align(Alignment.TopCenter)
                                 .size(34.dp),
@@ -346,12 +506,13 @@ fun ItemNotification(
                             )
                         }
                         IconButton(
+                            enabled = false,
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
                                 .size(34.dp),
                             onClick = {
-                                viewModel.cancelAlarm(notification.id)
-                                onEvent(NotificationEvent.DeleteNotification(notification))
+                                viewModel.cancelAlarm(medicine.id)
+                                onEvent(MedicineEvent.DeleteMedicine(medicine))
                                 shouldFlip = true
                             }) {
                             Icon(
@@ -396,7 +557,7 @@ fun ItemNotification(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = notification.time,
+                            text = medicine.time,
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -421,7 +582,7 @@ fun ItemNotification(
                             )
                         }
                         Text(
-                            text = notification.title,
+                            text = medicine.name,
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.titleLarge,
                             color = DarkBlue,
@@ -432,10 +593,11 @@ fun ItemNotification(
                         )
                     }
                     Switch(
-                        checked = isActive.value,
+                        enabled = false,
+                        checked = medicine.active,
                         onCheckedChange = {
                             isActive.value = it
-                            onEvent(NotificationEvent.SetActive(it, notification.id))
+                            onEvent(MedicineEvent.UpdateActiveStatus(it, medicine.id))
                             onSwitchOn(it)
                         },
                         colors = SwitchDefaults.colors(
@@ -467,4 +629,16 @@ fun ItemNotification(
             }
         }
     }
+}
+
+private fun copyImageToAppDirectory(context: Context, uri: Uri): String {
+    val inputStream = context.contentResolver.openInputStream(uri) ?: return ""
+    val fileName = "HDC_${System.currentTimeMillis()}.jpg"
+    val outputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE)
+    inputStream.use { input ->
+        outputStream.use { output ->
+            input.copyTo(output)
+        }
+    }
+    return context.getFileStreamPath(fileName).absolutePath
 }

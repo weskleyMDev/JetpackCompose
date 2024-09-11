@@ -3,8 +3,10 @@ package com.weskley.hdc_app.module
 import android.app.AlarmManager
 import android.app.NotificationManager
 import android.content.Context
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.weskley.hdc_app.service.NotificationService
 import com.weskley.hdc_app.service.imp.NotificationServiceImp
+import com.weskley.hdc_app.viewmodel.MedicineViewModel
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

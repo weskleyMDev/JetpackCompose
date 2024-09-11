@@ -9,6 +9,7 @@ import com.weskley.hdc_app.dao.NotificationDao
 import com.weskley.hdc_app.dao.TreatmentDao
 import com.weskley.hdc_app.dao.UserDao
 import com.weskley.hdc_app.database.TreatmentDatabase
+import com.weskley.hdc_app.viewmodel.MedicineViewModel
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

@@ -11,6 +11,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
@@ -18,9 +19,11 @@ import com.weskley.hdc_app.MainActivity
 import com.weskley.hdc_app.R
 import com.weskley.hdc_app.constant.Constants
 import com.weskley.hdc_app.controller.MEDICINE
+import com.weskley.hdc_app.controller.MEDICINE_AMOUNT
+import com.weskley.hdc_app.controller.MEDICINE_ID
 import com.weskley.hdc_app.controller.MY_URI
 import com.weskley.hdc_app.controller.TIME
-import com.weskley.hdc_app.model.CustomNotification
+import com.weskley.hdc_app.model.Medicine
 import com.weskley.hdc_app.receiver.NotificationReceiver
 import com.weskley.hdc_app.service.NotificationService
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -37,20 +40,20 @@ class NotificationServiceImp @Inject constructor(
 ) : NotificationService {
 
     override fun createNotification(
-        id: Int, title: String, body: String, imagePath: String, time: String
+        id: Int, name: String, amount: String, type: String, imagePath: String, time: String
     ) {
         val flag =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE else 0
 
         val notificationIntent = Intent(
             Intent.ACTION_VIEW,
-            "$MY_URI/$MEDICINE=$title&$TIME=$time".toUri(),
+            "$MY_URI/$MEDICINE=$name&$TIME=$time&$MEDICINE_ID=$id&$MEDICINE_AMOUNT=$amount".toUri(),
             context,
             MainActivity::class.java
         ).let { intent ->
             TaskStackBuilder.create(context).run {
                 addNextIntentWithParentStack(intent)
-                getPendingIntent(id+1, flag)
+                getPendingIntent(id + 1, flag)
             }
         }
 
@@ -60,8 +63,8 @@ class NotificationServiceImp @Inject constructor(
 
         val notification = NotificationCompat.Builder(context, Constants.CHANNEL_ID)
             .setSmallIcon(R.drawable.logo_circ_branco)
-            .setContentTitle(title)
-            .setContentText(body)
+            .setContentTitle(name)
+            .setContentText("$amount - $type")
             .setPriority(Constants.HIGH_PRIORITY)
             .setLargeIcon(largeIcon)
             .setStyle(
@@ -98,116 +101,49 @@ class NotificationServiceImp @Inject constructor(
         }
     }
 
-    override fun setRepeatingAlarm(
-        item: CustomNotification
-    ) {
-        val now = Calendar.getInstance()
-        val time = Calendar.getInstance().apply {
-            timeInMillis = System.currentTimeMillis()
-            set(Calendar.HOUR_OF_DAY, item.time.split(":")[0].toInt())
-            set(Calendar.MINUTE, item.time.split(":")[1].toInt())
+    override fun setDailyAlarm(medicine: Medicine) {
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, medicine.time.split(":")[0].toInt())
+            set(Calendar.MINUTE, medicine.time.split(":")[1].toInt())
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }
-
-        if (time.timeInMillis <= now.timeInMillis) {
-            time.add(Calendar.DAY_OF_YEAR, 1)
+        if (calendar.timeInMillis < System.currentTimeMillis()) {
+            calendar.add(Calendar.DAY_OF_MONTH, 1)
         }
-        Log.d("AlarmDebug", "Alarm set for: ${time.timeInMillis}")
-
-        val alarmIntent = Intent(context, NotificationReceiver::class.java).apply {
-            putExtra("title", item.title)
-            putExtra("text", item.type)
-            putExtra("imgUri", item.image)
-            putExtra("time", item.time)
-            putExtra("id", item.id+1)
-        }
-        val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            item.id+1,
-            alarmIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            time.timeInMillis,
-            pendingIntent
-        )
-        Log.d("AlarmDebug", "Alarm with ID ${item.id} created for ${time.time}")
-    }
-
-    override fun setDailyAlarm(
-        item: CustomNotification
-    ) {
-        val now = Calendar.getInstance()
-        val time = Calendar.getInstance().apply {
-            timeInMillis = System.currentTimeMillis()
-            set(Calendar.HOUR_OF_DAY, item.time.split(":")[0].toInt())
-            set(Calendar.MINUTE, item.time.split(":")[1].toInt())
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
-
-        if (time.timeInMillis <= now.timeInMillis) {
-            time.add(Calendar.DAY_OF_YEAR, 1)
-        }
-        Log.d("AlarmDebug", "Alarm set for: ${time.timeInMillis}")
-
-        val alarmIntent = Intent(context, NotificationReceiver::class.java).apply {
-            putExtra("title", item.title)
-            putExtra("text", item.type)
-            putExtra("imgUri", item.image)
-            putExtra("time", item.time)
-            putExtra("id", item.id)
-        }
-        val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            item.id,
-            alarmIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            time.timeInMillis,
-            pendingIntent
-        )
-        Log.d("AlarmDebug", "Alarm with ID ${item.id} created for ${time.time}")
-    }
-
-    override fun resetAlarm(
-        item: CustomNotification
-    ) {
-        val time = Calendar.getInstance().apply {
-            add(Calendar.DAY_OF_YEAR, 1)
-            set(Calendar.HOUR_OF_DAY, item.time.split(":")[0].toInt())
-            set(Calendar.MINUTE, item.time.split(":")[1].toInt())
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
-
-        Log.d("AlarmDebug", "Alarm reset for: ${time.timeInMillis}")
-
-        val alarmIntent = Intent(context, NotificationReceiver::class.java).apply {
-            putExtra("title", item.title)
-            putExtra("text", item.type)
-            putExtra("img", item.image)
-            putExtra("hour", item.time.split(":")[0].toInt())
-            putExtra("minute", item.time.split(":")[1].toInt())
-            putExtra("id", item.id)
+        val triggerTime = calendar.timeInMillis
+        val pendingIntent = Intent(context, NotificationReceiver::class.java).apply {
+            putExtra("id", medicine.id)
+            putExtra("name", medicine.name)
+            putExtra("amount", medicine.amount)
+            putExtra("type", medicine.type)
+            putExtra("time", medicine.time)
+            putExtra("image", medicine.image)
         }.let { intent ->
             PendingIntent.getBroadcast(
                 context,
-                item.id,
+                medicine.id,
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
         }
+        val period = 2 * 60 * 60 * 1000L/*(medicine.repetition.toLongOrNull() ?: 2)*/
         alarmManager.setExactAndAllowWhileIdle(
             AlarmManager.RTC_WAKEUP,
-            time.timeInMillis,
-            alarmIntent
+            triggerTime,
+            pendingIntent
         )
-        Log.d("AlarmDebug", "Alarm with ID $item.id created for ${time.time}")
+        /*alarmManager.setRepeating(
+            AlarmManager.RTC_WAKEUP,
+            triggerTime,
+            period,
+            pendingIntent
+        )*/
+        Log.d(
+            "AlarmDebug",
+            "Alarm with ID ${medicine.id} created for ${calendar.time} each ${medicine.repetition}"
+        )
+        Toast.makeText(context, "Alarme [${medicine.name}] ativado", Toast.LENGTH_SHORT).show()
     }
 
     override fun isAlarmActive(id: Int): Boolean {
@@ -224,21 +160,6 @@ class NotificationServiceImp @Inject constructor(
         return pendingIntent != null
     }
 
-    override fun cancelRepeatingAlarm(id: Int) {
-        if (isAlarmActive(id)) {
-            val intent = Intent(context, NotificationReceiver::class.java)
-            val pendingIntent = PendingIntent.getBroadcast(
-                context,
-                id+1,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
-            alarmManager.cancel(pendingIntent)
-            Log.d("AlarmDebug", "Alarm with ID $id canceled")
-        } else {
-            Log.d("AlarmDebug", "No alarm to cancel with ID $id")
-        }
-    }
     override fun cancelDailyAlarm(id: Int) {
         if (isAlarmActive(id)) {
             val intent = Intent(context, NotificationReceiver::class.java)
@@ -253,6 +174,7 @@ class NotificationServiceImp @Inject constructor(
         } else {
             Log.d("AlarmDebug", "No alarm to cancel with ID $id")
         }
+        Toast.makeText(context, "Alarme [$id] cancelado", Toast.LENGTH_SHORT).show()
     }
 }
 
@@ -261,7 +183,8 @@ private fun selectImage(context: Context, imagePath: String): Bitmap {
         val file = File(imagePath)
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
         context.contentResolver.openInputStream(uri)?.use { inputStream ->
-            BitmapFactory.decodeStream(inputStream) ?: BitmapFactory.decodeResource(context.resources, R.drawable.logo_circ_branco)
+            BitmapFactory.decodeStream(inputStream)
+                ?: BitmapFactory.decodeResource(context.resources, R.drawable.logo_circ_branco)
         } ?: BitmapFactory.decodeResource(context.resources, R.drawable.logo_circ_branco)
     } catch (e: Exception) {
         Log.e("NotificationService", "Error selecting image: ${e.message}", e)

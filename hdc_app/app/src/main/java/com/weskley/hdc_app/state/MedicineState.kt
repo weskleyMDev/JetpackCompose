@@ -16,6 +16,6 @@ data class MedicineState(
     val count: MutableState<Int> = mutableStateOf(0),
     val active: MutableState<Boolean> = mutableStateOf(false),
     val showAddMedicine: MutableState<Boolean> = mutableStateOf(false),
-    val treatmentId: MutableState<Int?> = mutableStateOf(null),
+    val treatmentId: MutableState<Int?> = mutableStateOf(0),
     val updateMedicine: Medicine? = null
 )

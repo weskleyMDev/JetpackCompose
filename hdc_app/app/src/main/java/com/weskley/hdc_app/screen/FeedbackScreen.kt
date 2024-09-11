@@ -1,5 +1,6 @@
 package com.weskley.hdc_app.screen
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.ChevronLeft
 import androidx.compose.material.icons.twotone.ChevronRight
 import androidx.compose.material.icons.twotone.Delete
+import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
@@ -35,8 +37,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.weskley.hdc_app.component.CustomAlert
 import com.weskley.hdc_app.event.FeedbackEvent
+import com.weskley.hdc_app.event.MedicineEvent
 import com.weskley.hdc_app.model.Feedback
 import com.weskley.hdc_app.viewmodel.FeedbackViewModel
+import com.weskley.hdc_app.viewmodel.MedicineViewModel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -44,7 +48,10 @@ import java.time.format.DateTimeFormatter
 fun FeedbackScreen(
     medicine: String,
     time: String,
-    feedbackViewModel: FeedbackViewModel = hiltViewModel()
+    id: Int,
+    amount: Int,
+    feedbackViewModel: FeedbackViewModel = hiltViewModel(),
+    medicineViewModel: MedicineViewModel = hiltViewModel()
 ) {
     val feedbackState by feedbackViewModel.feedbackState.collectAsState()
     val feedbackEvent = feedbackViewModel::feedBackEvent
@@ -57,8 +64,8 @@ fun FeedbackScreen(
     var feedback by remember {
         mutableStateOf("")
     }
-
     fun fetchData() {
+        Log.d("FeedbackScreen", "fetchData() called")
         val now = LocalDateTime.now().format(formatter)
         feedbackState.shippingTime.value = now
         feedbackState.medicine.value = medicine
@@ -66,6 +73,8 @@ fun FeedbackScreen(
         feedbackState.justification.value = text.value
         feedbackState.answer.value = isSelected
         feedbackState.entryTime.value = time
+        feedbackEvent(FeedbackEvent.SaveFeedback)
+        feedbackEvent(FeedbackEvent.HideAddFeedback)
     }
     if (feedbackState.isAddDialogOpen.value) {
         CustomAlert(
@@ -73,11 +82,12 @@ fun FeedbackScreen(
                 feedbackEvent(FeedbackEvent.HideAddFeedback)
             },
             onConfirm = {
+                if (isSelected == "Sim") {
+                    medicineViewModel.medicineEvent(MedicineEvent.IncrementCount(id, amount))
+                }
                 fetchData()
-                feedbackEvent(FeedbackEvent.SaveFeedback)
-                feedbackEvent(FeedbackEvent.HideAddFeedback)
             },
-            title = "$medicine - $time",
+            title = "$medicine[$id] - $amount - $time",
             text = {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -124,7 +134,8 @@ fun FeedbackScreen(
     }
     Column(
         modifier = Modifier
-            .fillMaxSize().padding(8.dp),
+            .fillMaxSize()
+            .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         LazyColumn(

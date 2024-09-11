@@ -8,6 +8,7 @@ import com.weskley.hdc_app.dao.NotificationDao
 import com.weskley.hdc_app.model.CustomNotification
 import com.weskley.hdc_app.service.NotificationService
 import com.weskley.hdc_app.event.NotificationEvent
+import com.weskley.hdc_app.model.Medicine
 import com.weskley.hdc_app.state.NotificationState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -41,7 +42,7 @@ class AlarmViewModel @Inject constructor(
         pickerState.value = !pickerState.value
     }
 
-    fun setAlarm(item: CustomNotification) {
+    fun setAlarm(item: Medicine) {
         viewModelScope.launch {
             service.setDailyAlarm(item)
         }

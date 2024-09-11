@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,6 +21,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
@@ -32,7 +35,9 @@ import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Healing
 import androidx.compose.material.icons.twotone.PostAdd
+import androidx.compose.material.icons.twotone.Remove
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
@@ -60,7 +65,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -84,6 +91,17 @@ import com.weskley.hdc_app.model.Medicine
 import com.weskley.hdc_app.model.Treatment
 import com.weskley.hdc_app.state.MedicineState
 import com.weskley.hdc_app.state.TreatmentState
+import com.weskley.hdc_app.ui.theme.Blue
+import com.weskley.hdc_app.ui.theme.DarkBlue
+import com.weskley.hdc_app.ui.theme.LightBlue
+import com.weskley.hdc_app.ui.theme.color1
+import com.weskley.hdc_app.ui.theme.color2
+import com.weskley.hdc_app.ui.theme.color3
+import com.weskley.hdc_app.ui.theme.color4
+import com.weskley.hdc_app.ui.theme.color5
+import com.weskley.hdc_app.ui.theme.color6
+import com.weskley.hdc_app.ui.theme.color7
+import com.weskley.hdc_app.viewmodel.AlarmViewModel
 import com.weskley.hdc_app.viewmodel.MedicineViewModel
 import com.weskley.hdc_app.viewmodel.TreatmentViewModel
 import kotlinx.coroutines.delay
@@ -316,12 +334,12 @@ fun ShowStatus(
     treatmentState: TreatmentState,
     medicineEvent: (MedicineEvent) -> Unit,
     medicineState: MedicineState,
-    treatment: Treatment?
+    treatment: Treatment?,
+    alarmViewModel: AlarmViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current.applicationContext
     val openPicker = remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val isOn = remember { mutableStateOf(false) }
     val types = listOf("", "Comprimido", "Dosador(ml)", "Gotas")
     val repetition = listOf("", "2", "4", "6", "8", "12", "24")
     val expandedTypes = remember { mutableStateOf(false) }
@@ -358,6 +376,7 @@ fun ShowStatus(
             Toast.makeText(context, "Nenhuma imagem selecionada", Toast.LENGTH_SHORT).show()
         }
     }
+
     fun createImageUri(context: Context): Uri {
         val file = File(context.filesDir, "HDC_${System.currentTimeMillis()}.jpg")
         return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
@@ -375,6 +394,8 @@ fun ShowStatus(
             onConfirm = {
                 medicineEvent(MedicineEvent.SetTreatmentId(treatment?.id ?: 0))
                 medicineEvent(MedicineEvent.SaveMedicine)
+                selectedTextTypes.value = types[0]
+                selectedTextRepetition.value = repetition[0]
                 medicineEvent(MedicineEvent.HideAddMedicineDialog)
             }
         ) {
@@ -404,7 +425,7 @@ fun ShowStatus(
                 Spacer(modifier = Modifier.width(8.dp))
                 ExposedDropdownMenuBox(
                     expanded = expandedTypes.value,
-                    onExpandedChange = {expandedTypes.value = !expandedTypes.value}
+                    onExpandedChange = { expandedTypes.value = !expandedTypes.value }
                 ) {
                     OutlinedTextField(
                         value = selectedTextTypes.value,
@@ -469,7 +490,8 @@ fun ShowStatus(
                         IconButton(onClick = { galleryLauncher.launch("image/jpeg") }) {
                             Icon(
                                 modifier = Modifier.size(30.dp),
-                                imageVector = Icons.TwoTone.AddPhotoAlternate, contentDescription = null
+                                imageVector = Icons.TwoTone.AddPhotoAlternate,
+                                contentDescription = null
                             )
                         }
                     }
@@ -483,10 +505,9 @@ fun ShowStatus(
             ) {
                 ExposedDropdownMenuBox(
                     expanded = expandedRepetition.value,
-                    onExpandedChange = {expandedRepetition.value = !expandedRepetition.value}
+                    onExpandedChange = { expandedRepetition.value = !expandedRepetition.value }
                 ) {
                     OutlinedTextField(
-                        enabled = isOn.value,
                         value = selectedTextRepetition.value,
                         onValueChange = {},
                         label = { Text(text = "Repetição(Horas)") },
@@ -494,7 +515,9 @@ fun ShowStatus(
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedRepetition.value)
                         },
                         readOnly = true,
-                        modifier = Modifier.menuAnchor().width(250.dp)
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
                     )
                     ExposedDropdownMenu(
                         expanded = expandedRepetition.value,
@@ -512,10 +535,6 @@ fun ShowStatus(
                         }
                     }
                 }
-                Switch(
-                    checked = isOn.value,
-                    onCheckedChange = {isOn.value = it}
-                )
             }
         }
     }
@@ -541,33 +560,64 @@ fun ShowStatus(
             onDismiss = { treatmentEvent(TreatmentEvent.hideStatusDialog) },
             onConfirm = { treatmentEvent(TreatmentEvent.hideStatusDialog) },
             toggle = {
-                IconButton(onClick = {
+                TextButton(onClick = {
                     medicineEvent(MedicineEvent.ShowAddMedicineDialog)
                 }) {
-                    Icon(
-                        modifier = Modifier.size(30.dp),
-                        imageVector = Icons.TwoTone.Add, contentDescription = null
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(30.dp),
+                            imageVector = Icons.TwoTone.Add, contentDescription = null
+                        )
+                        Text(text = "NOVO", fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
                 }
             }
         ) {
             HorizontalDivider()
             Spacer(modifier = Modifier.height(8.dp))
-            PercentBar(
-                indicatorValue = indicatorValue.toShort(),
-                maxIndicatorValue = maxIndicatorValue.toShort(),
-            )
+            ElevatedCard(
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 6.dp
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Brush.horizontalGradient(
+                                listOf(color3, color4)
+                            )
+                        ),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Spacer(modifier = Modifier.height(28.dp))
+                    PercentBar(
+                        indicatorValue = indicatorValue.toShort(),
+                        maxIndicatorValue = maxIndicatorValue.toShort(),
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
             HorizontalDivider()
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp)
-                    .height(150.dp),
+                    .height(250.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(filteredMedicines) { medicine ->
                     val meta = ((treatment?.duration ?: 0) * medicine.amount.toIntOrNull()!!)
-                    MedicineItem(medicine = medicine, medicineEvent = medicineEvent, meta = meta)
+                    MedicineItem(
+                        medicine = medicine,
+                        meta = meta,
+                        onUpdate = {},
+                        onDelete = {medicineEvent(MedicineEvent.DeleteMedicine(medicine))},
+                        event = medicineEvent
+                    )
                 }
             }
         }
@@ -592,19 +642,94 @@ fun ShowStatus(
 @Composable
 fun MedicineItem(
     medicine: Medicine,
-    medicineEvent: (MedicineEvent) -> Unit,
-    meta: Int
+    meta: Int,
+    onUpdate: () -> Unit,
+    onDelete: () -> Unit,
+    event: (MedicineEvent) -> Unit,
+    viewModel: AlarmViewModel = hiltViewModel(),
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        /*IconButton(onClick = {
-            medicineEvent(MedicineEvent.IncrementCount(medicine.id, medicine.amount.toIntOrNull() ?: 0))
-        }) {
-            Icon(imageVector = Icons.TwoTone.Add, contentDescription = null)
+    val isActive = remember { mutableStateOf(medicine.active) }
+    val buttonExpanded = remember { mutableStateOf(false) }
+    val rotationState = animateFloatAsState(
+        targetValue = if (buttonExpanded.value) 180f else 0f, label = ""
+    )
+    LaunchedEffect(medicine.active) {
+        isActive.value = medicine.active
+    }
+    fun onSwitchOn(isChecked: Boolean) {
+        if (isChecked) {
+            viewModel.setAlarm(medicine)
+        } else {
+            viewModel.cancelAlarm(medicine.id)
         }
-        */Text(text = medicine.name, modifier = Modifier.weight(1f))
-        Text(text = "${medicine.count} / $meta")
+    }
+    ElevatedCard(
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 6.dp
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.horizontalGradient(
+                        listOf(color1, color2)
+                    )
+                ),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 8.dp)
+            ) {
+                Switch(
+                    checked = isActive.value,
+                    onCheckedChange = {
+                        event(MedicineEvent.UpdateActiveStatus(it, medicine.id))
+                        onSwitchOn(it)
+                    }
+                )
+                Text(text = medicine.name)
+                Text(text = "- ${medicine.count} / $meta")
+                Spacer(modifier = Modifier.weight(1f))
+                IconButton(
+                    modifier = Modifier.rotate(rotationState.value),
+                    onClick = { buttonExpanded.value = !buttonExpanded.value }
+                ) {
+                    Icon(
+                        painterResource(R.drawable.twotone_arrow_left_24),
+                        contentDescription = null,
+                        tint = Color.Black,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            }
+            if (buttonExpanded.value) {
+                IconButton(onClick = {
+                    onUpdate()
+                    buttonExpanded.value = !buttonExpanded.value
+                }) {
+                    Icon(
+                        imageVector = Icons.TwoTone.Edit, contentDescription = null,
+                        tint = Color.Blue,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+                IconButton(onClick = {
+                    onDelete()
+                    buttonExpanded.value = !buttonExpanded.value
+                }) {
+                    Icon(
+                        imageVector = Icons.TwoTone.Delete, contentDescription = null,
+                        tint = Color.Red,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -625,31 +750,44 @@ fun CustomDialog(
             tonalElevation = 6.dp,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
+                .padding(16.dp)
                 .background(
-                    color = MaterialTheme.colorScheme.surface,
+                    color = MaterialTheme.colorScheme.onSurface,
                     shape = MaterialTheme.shapes.extraLarge
                 )
         ) {
-            Column(
-                modifier = Modifier
-                    .padding(24.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.background(
+                    Brush.horizontalGradient(
+                        listOf(
+                            color5,
+                            color6,
+                            color7
+                        )
+                    )
+                )
             ) {
-                title()
-                content()
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
+                Column(
                     modifier = Modifier
-                        .height(40.dp)
+                        .padding(24.dp)
                         .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    toggle()
-                    Spacer(modifier = Modifier.weight(1f))
-                    TextButton(onClick = onDismiss) { Text("CANCELAR") }
-                    TextButton(onClick = onConfirm) { Text("OK") }
+                    title()
+                    content()
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        modifier = Modifier
+                            .height(40.dp)
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        toggle()
+                        Spacer(modifier = Modifier.weight(1f))
+                        TextButton(onClick = onDismiss) { Text("CANCELAR") }
+                        TextButton(onClick = onConfirm) { Text("OK") }
+                    }
                 }
             }
         }

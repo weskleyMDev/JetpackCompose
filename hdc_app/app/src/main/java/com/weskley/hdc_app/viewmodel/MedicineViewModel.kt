@@ -2,6 +2,7 @@ package com.weskley.hdc_app.viewmodel
 
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.weskley.hdc_app.dao.MedicineDao
@@ -32,6 +33,15 @@ class MedicineViewModel @Inject constructor(
             medicines = medicines
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), MedicineState())
+
+    fun incrementCount(id: Int, amount: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val medicine = medicineDao.getMedicineById(id) ?: return@launch
+            val newCount = medicine.count + amount
+            val updatedMedicine = medicine.copy(count = newCount)
+            medicineDao.upsertMedicine(updatedMedicine)
+        }
+    }
 
     fun medicineEvent(event: MedicineEvent) {
         when (event) {
@@ -70,9 +80,7 @@ class MedicineViewModel @Inject constructor(
                     val image = state.value.image.value
                     val repetition = state.value.repetition.value
                     val count = state.value.count.value
-                    val treatmentId = state.value.treatmentId.value ?: return@launch
-
-                    Log.d("MedicineViewModel", "Saving medicine with treatmentId: $treatmentId")
+                    val treatmentId = state.value.treatmentId.value ?: 0
 
                     if (name.isBlank() || amount.isBlank() || type.isBlank() || time.isBlank() || image.isBlank() || repetition.isBlank()) {
                         return@launch
@@ -116,7 +124,7 @@ class MedicineViewModel @Inject constructor(
                             active = mutableStateOf(false),
                             showAddMedicine = mutableStateOf(false),
                             updateMedicine = null,
-                            treatmentId = mutableStateOf(null)
+                            treatmentId = mutableStateOf(0)
                         )
                     }
                 }
@@ -138,11 +146,20 @@ class MedicineViewModel @Inject constructor(
             }
 
             is MedicineEvent.IncrementCount -> {
+                Log.d("MedicineViewModel", "IncrementCount event received: id=${event.id}, amount=${event.amount}")
                 viewModelScope.launch(Dispatchers.IO) {
-                    val medicine = medicineDao.getMedicineById(event.id) ?: return@launch
-                    val newCount = medicine.count + event.amount
-                    val updatedMedicine = medicine.copy(count = newCount)
-                    medicineDao.upsertMedicine(updatedMedicine)
+                    try {
+                        val medicine = medicineDao.getMedicineById(event.id) ?: run {
+                            Log.e("MedicineViewModel", "Medicine not found for id: ${event.id}")
+                            return@launch
+                        }
+                        val newCount = medicine.count + event.amount
+                        Log.d("MedicineViewModel", "Updating medicine count: id=${event.id}, newCount=$newCount")
+                        val updatedMedicine = medicine.copy(count = newCount)
+                        medicineDao.upsertMedicine(updatedMedicine)
+                    } catch (e: Exception) {
+                        Log.e("MedicineViewModel", "Error updating medicine count", e)
+                    }
                 }
             }
 
