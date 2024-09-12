@@ -1,8 +1,11 @@
 package com.weskley.hdc_app.viewmodel
 
+import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.weskley.hdc_app.dao.MedicineDao
@@ -11,6 +14,7 @@ import com.weskley.hdc_app.model.Medicine
 import com.weskley.hdc_app.service.NotificationService
 import com.weskley.hdc_app.state.MedicineState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -34,14 +38,6 @@ class MedicineViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), MedicineState())
 
-    fun incrementCount(id: Int, amount: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val medicine = medicineDao.getMedicineById(id) ?: return@launch
-            val newCount = medicine.count + amount
-            val updatedMedicine = medicine.copy(count = newCount)
-            medicineDao.upsertMedicine(updatedMedicine)
-        }
-    }
 
     fun medicineEvent(event: MedicineEvent) {
         when (event) {
@@ -73,8 +69,8 @@ class MedicineViewModel @Inject constructor(
 
             MedicineEvent.SaveMedicine -> {
                 viewModelScope.launch {
-                    val name = state.value.name.value
-                    val amount = state.value.amount.value
+                    val name = state.value.name.value.trim().replaceFirstChar { it.uppercase() }
+                    val amount = state.value.amount.value.trim()
                     val type = state.value.type.value
                     val time = state.value.time.value
                     val image = state.value.image.value
@@ -168,6 +164,26 @@ class MedicineViewModel @Inject constructor(
                     Log.d("MedicineViewModel", "Setting treatmentId to: ${event.treatmentId}")
                     _state.update {
                         it.copy(treatmentId = mutableStateOf(event.treatmentId))
+                    }
+                }
+            }
+
+            MedicineEvent.ClearFields -> {
+                viewModelScope.launch {
+                    _state.update { clear ->
+                        clear.copy(
+                            name = mutableStateOf(""),
+                            amount = mutableStateOf(""),
+                            type = mutableStateOf(""),
+                            time = mutableStateOf(""),
+                            image = mutableStateOf(""),
+                            repetition = mutableStateOf(""),
+                            count = mutableStateOf(0),
+                            active = mutableStateOf(false),
+                            treatmentId = mutableStateOf(0),
+                            showAddMedicine = mutableStateOf(false),
+                            updateMedicine = null,
+                        )
                     }
                 }
             }

@@ -134,7 +134,7 @@ class NotificationServiceImp @Inject constructor(
             "AlarmDebug",
             "Alarm with ID ${medicine.id} created for ${calendar.time}"
         )
-        Toast.makeText(context, "Alarme [${medicine.name}] ativado", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "Alarme [${medicine.name}] ativado para [${medicine.time}]", Toast.LENGTH_SHORT).show()
     }
 
     override fun setRepeatingAlarm(medicine: Medicine) {
@@ -175,7 +175,7 @@ class NotificationServiceImp @Inject constructor(
             "AlarmDebug",
             "Alarm with ID ${medicine.id} created for ${calendar.time} to repeat each ${medicine.repetition} hours"
         )
-        Toast.makeText(context, "Alarme [${medicine.name}] ativado", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "Alarme [${medicine.name}] ativado para [${medicine.time}]", Toast.LENGTH_SHORT).show()
     }
 
     override fun isAlarmActive(id: Int): Boolean {
@@ -206,7 +206,7 @@ class NotificationServiceImp @Inject constructor(
         } else {
             Log.d("AlarmDebug", "No alarm to cancel with ID $id")
         }
-        Toast.makeText(context, "Alarme [$id] cancelado", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "Alarme [$id] desativado!", Toast.LENGTH_SHORT).show()
     }
 }
 

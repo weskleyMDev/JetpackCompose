@@ -72,6 +72,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -118,6 +119,7 @@ fun TreatmentScreen(
     treatmentViewModel: TreatmentViewModel = hiltViewModel(),
     medicineViewModel: MedicineViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current.applicationContext
     val treatmentState by treatmentViewModel.treatmentState.collectAsState()
     val treatmentEvent = treatmentViewModel::treatmentEvent
     val medicineState by medicineViewModel.state.collectAsState()
@@ -128,6 +130,7 @@ fun TreatmentScreen(
     val isLoadings = remember { mutableStateOf(true) }
     val isUpdate = remember { mutableStateOf(true) }
     val updatedTreatment = remember { mutableStateOf<Treatment?>(null) }
+    val error = remember { mutableStateOf<String?>(null) }
     LaunchedEffect(Unit) {
         delay(2000)
         isLoadings.value = false
@@ -178,10 +181,19 @@ fun TreatmentScreen(
                 },
                 confirmButton = {
                     TextButton(onClick = {
-                        calculateDuration()
-                        treatmentEvent(TreatmentEvent.SaveTreatment)
-                        treatmentEvent(TreatmentEvent.hideAddDialog)
-                        selectedDate.value = LocalDate.now()
+                        if (treatmentState.title.value != "" && treatmentState.duration.value != "") {
+                            calculateDuration()
+                            treatmentEvent(TreatmentEvent.SaveTreatment)
+                            treatmentEvent(TreatmentEvent.hideAddDialog)
+                            selectedDate.value = LocalDate.now()
+                        } else {
+                            error.value = "Preencha todos os campos"
+                            Toast.makeText(
+                                context,
+                                error.value,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }) {
                         Text(text = if (!isUpdate.value) "Salvar" else "Atualizar")
                     }
@@ -227,23 +239,28 @@ fun TreatmentScreen(
                                 }
                             }
                         )
-                        OutlinedTextField(value = treatmentState.title.value,
+                        OutlinedTextField(
+                            value = treatmentState.title.value,
                             onValueChange = { newTitle ->
                                 treatmentState.title.value = newTitle
                             },
                             label = {
                                 Text(text = "Título")
-                            }
+                            },
                         )
                         OutlinedTextField(
                             value = treatmentState.duration.value,
                             onValueChange = { newDuration ->
-                                treatmentState.duration.value = newDuration
+                                val filter = newDuration.filter { char -> char.isDigit() }
+                                if (newDuration == filter) { treatmentState.duration.value = filter }
                             },
                             label = {
                                 Text(text = "Duração (em dias)")
                             },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Number,
+                                imeAction = ImeAction.Done
+                            )
                         )
                     }
                 }
@@ -340,7 +357,7 @@ fun ShowStatus(
     val context = LocalContext.current.applicationContext
     val openPicker = remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val types = listOf("", "Comprimido", "Dosador(ml)", "Gotas")
+    val types = listOf("", "Comprimido", "Dosador(ml)", "Gota(s)")
     val repetition = listOf("", "2", "4", "6", "8", "12", "24")
     val expandedTypes = remember { mutableStateOf(false) }
     val expandedRepetition = remember { mutableStateOf(false) }
@@ -390,13 +407,28 @@ fun ShowStatus(
                     fontWeight = FontWeight.Bold
                 )
             },
-            onDismiss = { medicineEvent(MedicineEvent.HideAddMedicineDialog) },
-            onConfirm = {
-                medicineEvent(MedicineEvent.SetTreatmentId(treatment?.id ?: 0))
-                medicineEvent(MedicineEvent.SaveMedicine)
+            onDismiss = {
+                medicineEvent(MedicineEvent.ClearFields)
                 selectedTextTypes.value = types[0]
                 selectedTextRepetition.value = repetition[0]
-                medicineEvent(MedicineEvent.HideAddMedicineDialog)
+            },
+            onConfirm = {
+                if (
+                    medicineState.name.value != "" &&
+                    medicineState.amount.value != "" &&
+                    medicineState.type.value != "" &&
+                    medicineState.time.value != "" &&
+                    medicineState.image.value != "" &&
+                    medicineState.repetition.value != ""
+                ) {
+                    medicineEvent(MedicineEvent.SetTreatmentId(treatment?.id ?: 0))
+                    medicineEvent(MedicineEvent.SaveMedicine)
+                    selectedTextTypes.value = types[0]
+                    selectedTextRepetition.value = repetition[0]
+                    medicineEvent(MedicineEvent.HideAddMedicineDialog)
+                } else {
+                    Toast.makeText(context, "Preencha todos os campos", Toast.LENGTH_SHORT).show()
+                }
             }
         ) {
             OutlinedTextField(
@@ -411,7 +443,10 @@ fun ShowStatus(
                 OutlinedTextField(
                     modifier = Modifier.width(130.dp),
                     value = medicineState.amount.value,
-                    onValueChange = { medicineState.amount.value = it },
+                    onValueChange = {
+                        val filter = it.filter { char -> char.isDigit() }
+                        if (it == filter) { medicineState.amount.value = filter }
+                    },
                     label = {
                         Text(
                             text = "Quantidade",
@@ -420,7 +455,10 @@ fun ShowStatus(
                         )
                     },
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Done
+                    )
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 ExposedDropdownMenuBox(
@@ -615,7 +653,7 @@ fun ShowStatus(
                         medicine = medicine,
                         meta = meta,
                         onUpdate = {},
-                        onDelete = {medicineEvent(MedicineEvent.DeleteMedicine(medicine))},
+                        onDelete = { medicineEvent(MedicineEvent.DeleteMedicine(medicine)) },
                         event = medicineEvent
                     )
                 }
@@ -692,9 +730,13 @@ fun MedicineItem(
                         onSwitchOn(it)
                     }
                 )
-                Text(text = medicine.name)
-                Text(text = "- ${medicine.count} / $meta")
-                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    text = medicine.name,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(text = "${medicine.count} / $meta")
                 IconButton(
                     modifier = Modifier.rotate(rotationState.value),
                     onClick = { buttonExpanded.value = !buttonExpanded.value }

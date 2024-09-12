@@ -304,19 +304,19 @@ fun AlarmScreen(
                 }
             }
         }
-        FloatingActionButton(
+        /*FloatingActionButton(
             modifier = Modifier
                 .padding(bottom = 8.dp, end = 8.dp)
                 .align(Alignment.End),
             onClick = {
-                /*isUpdate.value = false
+                *//*isUpdate.value = false
                 updateMedicine.value = null
-                medicineEvent(MedicineEvent.ShowAddMedicineDialog)*/
+                medicineEvent(MedicineEvent.ShowAddMedicineDialog)*//*
                 navController.navigate(ScreenController.Treatment.route)
             },
         ) {
             Icon(imageVector = Icons.Filled.Add, contentDescription = null)
-        }
+        }*/
     }
 }
 
@@ -473,16 +473,27 @@ fun MedicineItem(
                                 tint = DarkBlue,
                             )
                         }
-                        Text(
-                            text = "${medicine.amount} - ${medicine.type}",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = DarkBlue,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
+                        Column(
                             modifier = Modifier
                                 .align(Alignment.CenterStart)
-                        )
+                        ) {
+                            Text(
+                                text = "${medicine.amount} - ${medicine.type}",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = DarkBlue,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Text(
+                                text = "A cada: ${medicine.repetition} horas",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = DarkBlue,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
                     }
                     Box(
                         modifier = Modifier
@@ -497,13 +508,13 @@ fun MedicineItem(
                                 onUpdate()
                                 shouldFlip = true
                             }) {
-                            Icon(
+                            /*Icon(
                                 modifier = Modifier
                                     .size(32.dp),
                                 painter = painterResource(id = R.drawable.twotone_edit_notifications_24),
                                 contentDescription = null,
                                 tint = Color.Blue
-                            )
+                            )*/
                         }
                         IconButton(
                             enabled = false,
@@ -515,13 +526,13 @@ fun MedicineItem(
                                 onEvent(MedicineEvent.DeleteMedicine(medicine))
                                 shouldFlip = true
                             }) {
-                            Icon(
+                            /*Icon(
                                 modifier = Modifier
                                     .size(32.dp),
                                 imageVector = Icons.TwoTone.Delete,
                                 contentDescription = null,
                                 tint = Color.Red
-                            )
+                            )*/
                         }
                     }
                 }

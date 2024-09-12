@@ -175,10 +175,10 @@ fun ReceitaItem(receita: Receitas, viewModel: AlarmViewModel = hiltViewModel()) 
                             }
                             IconButton(
                                 onClick = {
-                                    selectedMedIndex = index
+                                    /*selectedMedIndex = index
                                     medicamentoNome = nome ?: ""
                                     medicamentoDose = dose ?: ""
-                                    showDialog = true
+                                    showDialog = true*/
                                 },
                                 modifier = Modifier.padding(start = 8.dp)
                             ) {

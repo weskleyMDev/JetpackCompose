@@ -50,7 +50,7 @@ class AlarmViewModel @Inject constructor(
 
     fun cancelAlarm(id: Int) {
         viewModelScope.launch {
-            service.cancelDailyAlarm(id)
+            service.cancelAlarm(id)
         }
     }
 

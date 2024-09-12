@@ -40,10 +40,10 @@ class TreatmentViewModel @Inject constructor(
             }
             TreatmentEvent.SaveTreatment -> {
                 viewModelScope.launch {
-                    val title = treatmentState.value.title.value
+                    val title = treatmentState.value.title.value.trim().replaceFirstChar { it.uppercase() }
                     val startDate = treatmentState.value.startDate.value
                     val endDate = treatmentState.value.endDate.value
-                    val duration = treatmentState.value.duration.value
+                    val duration = treatmentState.value.duration.value.trim()
                     if(title.isBlank() || startDate.isBlank() || endDate.isBlank()) {
                         return@launch
                     }

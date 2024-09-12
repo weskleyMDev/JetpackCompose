@@ -11,4 +11,5 @@ sealed interface MedicineEvent {
     data object HideAddMedicineDialog : MedicineEvent
     data class IncrementCount(val id: Int, val amount: Int) : MedicineEvent
     data class SetTreatmentId(val treatmentId: Int) : MedicineEvent
+    data object ClearFields : MedicineEvent
 }
