@@ -15,6 +15,7 @@ import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import com.google.gson.Gson
 import com.weskley.hdc_app.MainActivity
 import com.weskley.hdc_app.R
 import com.weskley.hdc_app.constant.Constants
@@ -112,13 +113,10 @@ class NotificationServiceImp @Inject constructor(
             calendar.add(Calendar.DAY_OF_MONTH, 1)
         }
         val triggerTime = calendar.timeInMillis
+        val gson = Gson()
+        val medicineJson = gson.toJson(medicine)
         val pendingIntent = Intent(context, NotificationReceiver::class.java).apply {
-            putExtra("id", medicine.id)
-            putExtra("name", medicine.name)
-            putExtra("amount", medicine.amount)
-            putExtra("type", medicine.type)
-            putExtra("time", medicine.time)
-            putExtra("image", medicine.image)
+            putExtra("medicineJson", medicineJson)
         }.let { intent ->
             PendingIntent.getBroadcast(
                 context,
@@ -127,21 +125,55 @@ class NotificationServiceImp @Inject constructor(
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
         }
-        val period = 2 * 60 * 60 * 1000L/*(medicine.repetition.toLongOrNull() ?: 2)*/
         alarmManager.setExactAndAllowWhileIdle(
             AlarmManager.RTC_WAKEUP,
             triggerTime,
             pendingIntent
         )
-        /*alarmManager.setRepeating(
-            AlarmManager.RTC_WAKEUP,
-            triggerTime,
-            period,
-            pendingIntent
-        )*/
         Log.d(
             "AlarmDebug",
-            "Alarm with ID ${medicine.id} created for ${calendar.time} each ${medicine.repetition}"
+            "Alarm with ID ${medicine.id} created for ${calendar.time}"
+        )
+        Toast.makeText(context, "Alarme [${medicine.name}] ativado", Toast.LENGTH_SHORT).show()
+    }
+
+    override fun setRepeatingAlarm(medicine: Medicine) {
+        val initialHour = medicine.time.split(":")[0].toInt()
+        val initialMinute = medicine.time.split(":")[1].toInt()
+        val repetitionHours = medicine.repetition.toInt()
+
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, initialHour)
+            set(Calendar.MINUTE, initialMinute)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        calendar.add(Calendar.HOUR_OF_DAY, repetitionHours)
+        if (calendar.timeInMillis < System.currentTimeMillis()) {
+            calendar.add(Calendar.DAY_OF_MONTH, 1)
+        }
+        val triggerTime = calendar.timeInMillis
+
+        val gson = Gson()
+        val medicineJson = gson.toJson(medicine)
+        val pendingIntent = Intent(context, NotificationReceiver::class.java).apply {
+            putExtra("medicineJson", medicineJson)
+        }.let { intent ->
+            PendingIntent.getBroadcast(
+                context,
+                medicine.id,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+        }
+        alarmManager.setExactAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP,
+            triggerTime,
+            pendingIntent
+        )
+        Log.d(
+            "AlarmDebug",
+            "Alarm with ID ${medicine.id} created for ${calendar.time} to repeat each ${medicine.repetition} hours"
         )
         Toast.makeText(context, "Alarme [${medicine.name}] ativado", Toast.LENGTH_SHORT).show()
     }
@@ -160,7 +192,7 @@ class NotificationServiceImp @Inject constructor(
         return pendingIntent != null
     }
 
-    override fun cancelDailyAlarm(id: Int) {
+    override fun cancelAlarm(id: Int) {
         if (isAlarmActive(id)) {
             val intent = Intent(context, NotificationReceiver::class.java)
             val pendingIntent = PendingIntent.getBroadcast(

@@ -6,6 +6,7 @@ interface NotificationService {
     fun createNotification(id: Int, name: String, amount: String, type: String,
                            imagePath: String, time: String)
     fun setDailyAlarm(medicine: Medicine)
+    fun setRepeatingAlarm(medicine: Medicine)
     fun isAlarmActive(id: Int): Boolean
-    fun cancelDailyAlarm(id: Int)
+    fun cancelAlarm(id: Int)
 }

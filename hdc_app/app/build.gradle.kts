@@ -75,6 +75,7 @@ dependencies {
     implementation(libs.androidx.camera.extensions)
     implementation(libs.coil.compose)
     implementation(libs.androidx.foundation)
+    implementation(libs.gson)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
