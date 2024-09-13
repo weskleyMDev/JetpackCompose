@@ -164,14 +164,14 @@ fun AlarmScreen(
         val file = File(context.filesDir, "HDC_${System.currentTimeMillis()}.jpg")
         return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
     }
-    fun incrementAlarm(id: Int, amount: Int) {
+    /*fun incrementAlarm(id: Int, amount: Int) {
         CoroutineScope(Dispatchers.IO).launch {
             val medicine = medicineDao.getMedicineById(id) ?: return@launch
             val newCount = medicine.count + amount
             val updatedMedicine = medicine.copy(count = newCount)
             medicineDao.upsertMedicine(updatedMedicine)
         }
-    }
+    }*/
 
     LaunchedEffect(isLoading.value) {
         delay(2000)

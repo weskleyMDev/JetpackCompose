@@ -1,7 +1,12 @@
 package com.weskley.hdc_app.screen
 
+import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -15,27 +20,22 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.AddAPhoto
 import androidx.compose.material.icons.twotone.AddAlarm
 import androidx.compose.material.icons.twotone.AddPhotoAlternate
-import androidx.compose.material.icons.twotone.ArrowDropDown
 import androidx.compose.material.icons.twotone.CalendarMonth
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Healing
 import androidx.compose.material.icons.twotone.PostAdd
-import androidx.compose.material.icons.twotone.Remove
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
@@ -65,7 +65,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -92,9 +91,6 @@ import com.weskley.hdc_app.model.Medicine
 import com.weskley.hdc_app.model.Treatment
 import com.weskley.hdc_app.state.MedicineState
 import com.weskley.hdc_app.state.TreatmentState
-import com.weskley.hdc_app.ui.theme.Blue
-import com.weskley.hdc_app.ui.theme.DarkBlue
-import com.weskley.hdc_app.ui.theme.LightBlue
 import com.weskley.hdc_app.ui.theme.color1
 import com.weskley.hdc_app.ui.theme.color2
 import com.weskley.hdc_app.ui.theme.color3
@@ -108,6 +104,8 @@ import com.weskley.hdc_app.viewmodel.TreatmentViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
+import java.io.IOException
+import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -252,7 +250,9 @@ fun TreatmentScreen(
                             value = treatmentState.duration.value,
                             onValueChange = { newDuration ->
                                 val filter = newDuration.filter { char -> char.isDigit() }
-                                if (newDuration == filter) { treatmentState.duration.value = filter }
+                                if (newDuration == filter) {
+                                    treatmentState.duration.value = filter
+                                }
                             },
                             label = {
                                 Text(text = "Duração (em dias)")
@@ -352,7 +352,6 @@ fun ShowStatus(
     medicineEvent: (MedicineEvent) -> Unit,
     medicineState: MedicineState,
     treatment: Treatment?,
-    alarmViewModel: AlarmViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current.applicationContext
     val openPicker = remember { mutableStateOf(false) }
@@ -374,30 +373,46 @@ fun ShowStatus(
         val totalAmount = filteredMedicines.sumOf { it.amount.toIntOrNull() ?: 0 }
         maxIndicatorValue = (treatment?.duration ?: 0) * totalAmount
     }
-    var imageUri: Uri? = null
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture()
-    ) { success ->
-        if (success) {
-            medicineState.image.value = imageUri.toString()
+    val imageUri = remember { mutableStateOf<Uri?>(null) }
+    val takePictureLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+            if (success) {
+                imageUri.value?.let { uri ->
+                    Log.d("CameraCapture", "Image saved to: $uri")
+                    medicineState.image.value = uri.toString()
+                    saveImageToGallery(context, uri)
+                }
+            } else {
+                Log.e("CameraCapture", "Image capture failed")
+            }
         }
-    }
-    val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri ->
-        uri?.let {
-            val imagePath = copyImageToAppDirectory(context, it)
-            medicineState.image.value = imagePath
-            Toast.makeText(context, "Imagem selecionada da galeria", Toast.LENGTH_SHORT).show()
-        } ?: run {
-            Toast.makeText(context, "Nenhuma imagem selecionada", Toast.LENGTH_SHORT).show()
+    val galleryLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            uri?.let {
+                val copiedImagePath = copyImageToAppDirectory(context, it)
+                copiedImagePath?.let { copiedImage ->
+                    medicineState.image.value = copiedImage
+                    Toast.makeText(context, "Imagem selecionada da galeria", Toast.LENGTH_SHORT)
+                        .show()
+                }
+            } ?: run {
+                Toast.makeText(context, "Nenhuma imagem selecionada", Toast.LENGTH_SHORT).show()
+            }
         }
+
+    fun createImageUri(): Uri {
+        val imageFileName = "HDC_${System.currentTimeMillis()}.jpg"
+        val storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        val imageFile = File(storageDir, imageFileName)
+        return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", imageFile)
     }
 
-    fun createImageUri(context: Context): Uri {
-        val file = File(context.filesDir, "HDC_${System.currentTimeMillis()}.jpg")
-        return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+    fun takePicture() {
+        val uri = createImageUri()
+        imageUri.value = uri
+        takePictureLauncher.launch(uri)
     }
+
     if (medicineState.showAddMedicine.value) {
         CustomDialog(
             title = {
@@ -445,7 +460,9 @@ fun ShowStatus(
                     value = medicineState.amount.value,
                     onValueChange = {
                         val filter = it.filter { char -> char.isDigit() }
-                        if (it == filter) { medicineState.amount.value = filter }
+                        if (it == filter) {
+                            medicineState.amount.value = filter
+                        }
                     },
                     label = {
                         Text(
@@ -517,8 +534,7 @@ fun ShowStatus(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(onClick = {
-                            imageUri = createImageUri(context)
-                            cameraLauncher.launch(imageUri!!)
+                            takePicture()
                         }) {
                             Icon(
                                 modifier = Modifier.size(30.dp),
@@ -674,6 +690,58 @@ fun ShowStatus(
                 }
             }
         )
+    }
+}
+
+private fun saveImageToGallery(context: Context?, uri: Uri) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        if (context != null) {
+            context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val displayNameIndex = cursor.getColumnIndex("_display_name")
+                    val mimeTypeIndex = cursor.getColumnIndex("mime_type")
+
+                    val displayName = if (displayNameIndex != -1) {
+                        cursor.getString(displayNameIndex)
+                    } else {
+                        "image_${System.currentTimeMillis()}.jpg"
+                    }
+
+                    val mimeType = if (mimeTypeIndex != -1) {
+                        cursor.getString(mimeTypeIndex)
+                    } else {
+                        "image/jpeg"
+                    }
+
+                    val imageStream: InputStream? = context.contentResolver.openInputStream(uri)
+
+                    val contentValues = ContentValues().apply {
+                        put(MediaStore.Images.Media.DISPLAY_NAME, displayName)
+                        put(MediaStore.Images.Media.MIME_TYPE, mimeType)
+                        put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
+                    }
+
+                    val newUri = context.contentResolver.insert(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        contentValues
+                    )
+                    newUri?.let {
+                        context.contentResolver.openOutputStream(it)?.use { outputStream ->
+                            imageStream?.copyTo(outputStream)
+                        }
+                    }
+                } else {
+                    Log.e("CameraCapture", "Cursor did not return any data")
+                }
+            } ?: Log.e("CameraCapture", "Failed to query content resolver")
+        }
+    } else {
+        val file = File(uri.path ?: return)
+        val newFile = File(
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+            file.name
+        )
+        file.copyTo(newFile, overwrite = true)
     }
 }
 
@@ -935,14 +1003,22 @@ fun TreatmentItem(
     }
 }
 
-private fun copyImageToAppDirectory(context: Context, uri: Uri): String {
-    val inputStream = context.contentResolver.openInputStream(uri) ?: return ""
+private fun copyImageToAppDirectory(context: Context, uri: Uri): String? {
+    val inputStream = context.contentResolver.openInputStream(uri) ?: return null
     val fileName = "HDC_${System.currentTimeMillis()}.jpg"
     val outputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE)
-    inputStream.use { input ->
-        outputStream.use { output ->
-            input.copyTo(output)
+
+    return try {
+        inputStream.use { input ->
+            outputStream.use { output ->
+                input.copyTo(output)
+            }
         }
+        val filePath = context.getFileStreamPath(fileName)?.absolutePath
+        Log.d("ImageCopy", "Image copied to: $filePath") // Adicione um log para verificar o caminho
+        filePath
+    } catch (e: IOException) {
+        e.printStackTrace()
+        null
     }
-    return context.getFileStreamPath(fileName).absolutePath
 }

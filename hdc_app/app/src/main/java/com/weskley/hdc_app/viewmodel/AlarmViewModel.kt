@@ -54,6 +54,12 @@ class AlarmViewModel @Inject constructor(
         }
     }
 
+    fun setRepeatAlarm(medicine: Medicine) {
+        viewModelScope.launch {
+            service.setRepeatingAlarm(medicine)
+        }
+    }
+
     fun onEvent(event: NotificationEvent) {
         when (event) {
             is NotificationEvent.DeleteNotification -> {

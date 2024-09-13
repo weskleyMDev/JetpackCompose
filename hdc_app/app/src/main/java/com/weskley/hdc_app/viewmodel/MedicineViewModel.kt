@@ -1,24 +1,20 @@
 package com.weskley.hdc_app.viewmodel
 
-import android.content.Context
 import android.util.Log
-import android.widget.Toast
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.weskley.hdc_app.dao.MedicineDao
 import com.weskley.hdc_app.event.MedicineEvent
 import com.weskley.hdc_app.model.Medicine
-import com.weskley.hdc_app.service.NotificationService
 import com.weskley.hdc_app.state.MedicineState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -116,7 +112,7 @@ class MedicineViewModel @Inject constructor(
                             time = mutableStateOf(""),
                             image = mutableStateOf(""),
                             repetition = mutableStateOf(""),
-                            count = mutableStateOf(0),
+                            count = mutableIntStateOf(0),
                             active = mutableStateOf(false),
                             showAddMedicine = mutableStateOf(false),
                             updateMedicine = null,
@@ -142,17 +138,25 @@ class MedicineViewModel @Inject constructor(
             }
 
             is MedicineEvent.IncrementCount -> {
-                Log.d("MedicineViewModel", "IncrementCount event received: id=${event.id}, amount=${event.amount}")
+                Log.d(
+                    "MedicineViewModel",
+                    "IncrementCount event received: id=${event.id}, amount=${event.amount}"
+                )
                 viewModelScope.launch(Dispatchers.IO) {
                     try {
-                        val medicine = medicineDao.getMedicineById(event.id) ?: run {
+                        val medicine = medicineDao.getMedicineById(event.id).firstOrNull()
+                        if (medicine != null) {
+                            val newCount = medicine.count + event.amount
+                            Log.d(
+                                "MedicineViewModel",
+                                "Updating medicine count: id=${event.id}, newCount=$newCount"
+                            )
+                            val updatedMedicine = medicine.copy(count = newCount)
+                            medicineDao.upsertMedicine(updatedMedicine)
+                        } else {
                             Log.e("MedicineViewModel", "Medicine not found for id: ${event.id}")
                             return@launch
                         }
-                        val newCount = medicine.count + event.amount
-                        Log.d("MedicineViewModel", "Updating medicine count: id=${event.id}, newCount=$newCount")
-                        val updatedMedicine = medicine.copy(count = newCount)
-                        medicineDao.upsertMedicine(updatedMedicine)
                     } catch (e: Exception) {
                         Log.e("MedicineViewModel", "Error updating medicine count", e)
                     }
@@ -178,12 +182,29 @@ class MedicineViewModel @Inject constructor(
                             time = mutableStateOf(""),
                             image = mutableStateOf(""),
                             repetition = mutableStateOf(""),
-                            count = mutableStateOf(0),
+                            count = mutableIntStateOf(0),
                             active = mutableStateOf(false),
                             treatmentId = mutableStateOf(0),
                             showAddMedicine = mutableStateOf(false),
                             updateMedicine = null,
                         )
+                    }
+                }
+            }
+
+            is MedicineEvent.GetMedicineById -> {
+                viewModelScope.launch {
+                    try {
+                        val medicine = medicineDao.getMedicineById(event.id).firstOrNull()
+                        if (medicine != null) {
+                            _state.update {
+                                it.copy(
+                                    updateMedicine = medicine
+                                )
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("MedicineViewModel", "Error collecting medicine by id", e)
                     }
                 }
             }

@@ -14,7 +14,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.ChevronLeft
 import androidx.compose.material.icons.twotone.ChevronRight
 import androidx.compose.material.icons.twotone.Delete
-import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
@@ -23,6 +22,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +39,7 @@ import com.weskley.hdc_app.component.CustomAlert
 import com.weskley.hdc_app.event.FeedbackEvent
 import com.weskley.hdc_app.event.MedicineEvent
 import com.weskley.hdc_app.model.Feedback
+import com.weskley.hdc_app.viewmodel.AlarmViewModel
 import com.weskley.hdc_app.viewmodel.FeedbackViewModel
 import com.weskley.hdc_app.viewmodel.MedicineViewModel
 import java.time.LocalDateTime
@@ -51,10 +52,12 @@ fun FeedbackScreen(
     id: Int,
     amount: Int,
     feedbackViewModel: FeedbackViewModel = hiltViewModel(),
-    medicineViewModel: MedicineViewModel = hiltViewModel()
+    medicineViewModel: MedicineViewModel = hiltViewModel(),
+    alarmViewModel: AlarmViewModel = hiltViewModel()
 ) {
     val feedbackState by feedbackViewModel.feedbackState.collectAsState()
     val feedbackEvent = feedbackViewModel::feedBackEvent
+    val medicineState by medicineViewModel.state.collectAsState()
     val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")
     val options = listOf("Sim", "Não")
     var isSelected by remember { mutableStateOf(options[0]) }
@@ -63,6 +66,12 @@ fun FeedbackScreen(
     }
     var feedback by remember {
         mutableStateOf("")
+    }
+    val getMedicine = medicineState.updateMedicine
+    LaunchedEffect(id) {
+        if (getMedicine == null) {
+            medicineViewModel.medicineEvent(MedicineEvent.GetMedicineById(id))
+        }
     }
     fun fetchData() {
         Log.d("FeedbackScreen", "fetchData() called")
@@ -82,8 +91,12 @@ fun FeedbackScreen(
                 feedbackEvent(FeedbackEvent.HideAddFeedback)
             },
             onConfirm = {
+                alarmViewModel.cancelAlarm(id)
                 if (isSelected == "Sim") {
                     medicineViewModel.medicineEvent(MedicineEvent.IncrementCount(id, amount))
+                }
+                if (getMedicine != null) {
+                    alarmViewModel.setRepeatAlarm(getMedicine)
                 }
                 fetchData()
             },
@@ -141,7 +154,7 @@ fun FeedbackScreen(
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(feedbackState.feedbackList) {item ->
+            items(feedbackState.feedbackList) { item ->
                 FeedbackItem(feedback = item)
             }
         }
@@ -166,41 +179,41 @@ fun FeedbackItem(
         Column(
             modifier = Modifier.padding(12.dp)
         ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
                 ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Text(
-                            text = feedback.medicine,
-                            fontSize = 22.sp
-                        )
-                        Text(
-                            text = feedback.shippingTime
-                        )
-                    }
-                    IconButton(onClick = {
-                        buttonExpanded.value = !buttonExpanded.value
-                    }) {
+                    Text(
+                        text = feedback.medicine,
+                        fontSize = 22.sp
+                    )
+                    Text(
+                        text = feedback.shippingTime
+                    )
+                }
+                IconButton(onClick = {
+                    buttonExpanded.value = !buttonExpanded.value
+                }) {
+                    Icon(
+                        imageVector =
+                        if (buttonExpanded.value)
+                            Icons.TwoTone.ChevronRight
+                        else
+                            Icons.TwoTone.ChevronLeft,
+                        contentDescription = null
+                    )
+                }
+                if (buttonExpanded.value) {
+                    IconButton(onClick = { /*TODO*/ }) {
                         Icon(
-                            imageVector =
-                            if (buttonExpanded.value)
-                                Icons.TwoTone.ChevronRight
-                            else
-                                Icons.TwoTone.ChevronLeft,
+                            imageVector = Icons.TwoTone.Delete,
                             contentDescription = null
                         )
                     }
-                    if (buttonExpanded.value) {
-                        IconButton(onClick = { /*TODO*/ }) {
-                            Icon(
-                                imageVector = Icons.TwoTone.Delete,
-                                contentDescription = null
-                            )
-                        }
-                    }
                 }
+            }
             if (textExpanded.value) {
                 Text(text = feedback.answer)
                 Text(text = feedback.justification)

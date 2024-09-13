@@ -29,6 +29,7 @@ class MainActivity : ComponentActivity() {
                     android.Manifest.permission.POST_NOTIFICATIONS,
                     android.Manifest.permission.CAMERA,
                     android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
                     android.Manifest.permission.SET_ALARM,
                     android.Manifest.permission.SCHEDULE_EXACT_ALARM,
                     android.Manifest.permission.USE_EXACT_ALARM,

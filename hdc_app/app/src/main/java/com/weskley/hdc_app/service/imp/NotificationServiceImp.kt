@@ -9,11 +9,9 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
-import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import com.google.gson.Gson
 import com.weskley.hdc_app.MainActivity
@@ -29,7 +27,10 @@ import com.weskley.hdc_app.receiver.NotificationReceiver
 import com.weskley.hdc_app.service.NotificationService
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
+import java.io.FileInputStream
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -44,7 +45,7 @@ class NotificationServiceImp @Inject constructor(
         id: Int, name: String, amount: String, type: String, imagePath: String, time: String
     ) {
         val flag =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE else 0
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 
         val notificationIntent = Intent(
             Intent.ACTION_VIEW,
@@ -138,6 +139,7 @@ class NotificationServiceImp @Inject constructor(
     }
 
     override fun setRepeatingAlarm(medicine: Medicine) {
+        val formatter = SimpleDateFormat("dd/MM - HH:mm", Locale.getDefault())
         val initialHour = medicine.time.split(":")[0].toInt()
         val initialMinute = medicine.time.split(":")[1].toInt()
         val repetitionHours = medicine.repetition.toInt()
@@ -175,7 +177,7 @@ class NotificationServiceImp @Inject constructor(
             "AlarmDebug",
             "Alarm with ID ${medicine.id} created for ${calendar.time} to repeat each ${medicine.repetition} hours"
         )
-        Toast.makeText(context, "Alarme [${medicine.name}] ativado para [${medicine.time}]", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "Alarme [${medicine.name}] ativado para [${formatter.format(calendar.time)}]", Toast.LENGTH_SHORT).show()
     }
 
     override fun isAlarmActive(id: Int): Boolean {
@@ -206,16 +208,35 @@ class NotificationServiceImp @Inject constructor(
         } else {
             Log.d("AlarmDebug", "No alarm to cancel with ID $id")
         }
-        Toast.makeText(context, "Alarme [$id] desativado!", Toast.LENGTH_SHORT).show()
     }
 }
 
 private fun selectImage(context: Context, imagePath: String): Bitmap {
+    Log.d("NotificationService", "Selecting image from path: $imagePath")
     return try {
-        val file = File(imagePath)
-        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-        context.contentResolver.openInputStream(uri)?.use { inputStream ->
-            BitmapFactory.decodeStream(inputStream)
+        val uri = if (imagePath.startsWith("/")) {
+            Uri.fromFile(File(imagePath))
+        } else {
+            Uri.parse(imagePath)
+        }
+
+        val inputStream = when (uri.scheme) {
+            "content" -> {
+                Log.d("NotificationService", "Opening input stream from content URI")
+                context.contentResolver.openInputStream(uri)
+            }
+            "file" -> {
+                Log.d("NotificationService", "Opening input stream from file URI")
+                FileInputStream(File(uri.path!!))
+            }
+            else -> {
+                Log.e("NotificationService", "Unsupported URI scheme: ${uri.scheme}")
+                null
+            }
+        }
+
+        inputStream?.use { input ->
+            BitmapFactory.decodeStream(input)
                 ?: BitmapFactory.decodeResource(context.resources, R.drawable.logo_circ_branco)
         } ?: BitmapFactory.decodeResource(context.resources, R.drawable.logo_circ_branco)
     } catch (e: Exception) {

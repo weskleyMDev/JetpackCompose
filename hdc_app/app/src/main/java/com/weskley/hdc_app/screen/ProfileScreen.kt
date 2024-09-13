@@ -1,6 +1,5 @@
 package com.weskley.hdc_app.screen
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -13,18 +12,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -32,7 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,30 +37,35 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.room.Room
-import androidx.room.RoomDatabase
 import com.weskley.hdc_app.R
-import com.weskley.hdc_app.dao.MedicineDao
-import com.weskley.hdc_app.database.TreatmentDatabase
 import com.weskley.hdc_app.event.MedicineEvent
 import com.weskley.hdc_app.event.UserEvent
 import com.weskley.hdc_app.model.User
 import com.weskley.hdc_app.state.UserState
 import com.weskley.hdc_app.ui.theme.DarkBlue
-import com.weskley.hdc_app.ui.theme.MediumDarkBlue
 import com.weskley.hdc_app.viewmodel.MedicineViewModel
-import com.weskley.hdc_app.viewmodel.UserViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 @Composable
 fun ProfileScreen(
     viewModel: MedicineViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current.applicationContext
+    /*val medicineState by viewModel.state.collectAsState()
+    val medicine = medicineState.updateMedicine
+
+    LaunchedEffect(medicine) {
+        viewModel.medicineEvent(MedicineEvent.GetMedicineById(3))
+    }
+
+    Column {
+        Text(text = medicine?.name ?: "null")
+        Text(text = medicine?.amount ?: "null")
+        Text(text = medicine?.type ?: "null")
+        Text(text = medicine?.time ?: "null")
+        Text(text = medicine?.image ?: "null")
+        Text(text = medicine?.repetition ?: "null")
+    }*/
+
+    /*val context = LocalContext.current.applicationContext
     val db = Room.databaseBuilder(
         context,
         TreatmentDatabase::class.java,
@@ -83,7 +79,7 @@ fun ProfileScreen(
             val updatedMedicine = medicine.copy(count = newCount)
             medicineDao.upsertMedicine(updatedMedicine)
         }
-    }
+    }*/
     /*UpdateDialog(
         openDialog = userState.openDialog.value,
         userState = userState,

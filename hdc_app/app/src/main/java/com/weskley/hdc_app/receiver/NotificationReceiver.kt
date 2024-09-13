@@ -39,8 +39,6 @@ class NotificationReceiver : BroadcastReceiver() {
                 )
                 if (::service.isInitialized) {
                     service.createNotification(id, name, amountStr, type, image, time)
-                    service.cancelAlarm(id)
-                    service.setRepeatingAlarm(medicine)
                 } else {
                     Log.e("NotificationReceiver", "NotificationService is not initialized.")
                 }
