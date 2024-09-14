@@ -140,8 +140,9 @@ class NotificationServiceImp @Inject constructor(
 
     override fun setRepeatingAlarm(medicine: Medicine) {
         val formatter = SimpleDateFormat("dd/MM - HH:mm", Locale.getDefault())
-        val initialHour = medicine.time.split(":")[0].toInt()
-        val initialMinute = medicine.time.split(":")[1].toInt()
+        val now = Calendar.getInstance()
+        val initialHour = now.get(Calendar.HOUR_OF_DAY)
+        val initialMinute = now.get(Calendar.MINUTE)
         val repetitionHours = medicine.repetition.toInt()
 
         val calendar = Calendar.getInstance().apply {
