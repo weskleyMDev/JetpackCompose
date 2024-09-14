@@ -98,6 +98,8 @@ import com.weskley.hdc_app.ui.theme.color4
 import com.weskley.hdc_app.ui.theme.color5
 import com.weskley.hdc_app.ui.theme.color6
 import com.weskley.hdc_app.ui.theme.color7
+import com.weskley.hdc_app.ui.theme.color8
+import com.weskley.hdc_app.ui.theme.color9
 import com.weskley.hdc_app.viewmodel.AlarmViewModel
 import com.weskley.hdc_app.viewmodel.MedicineViewModel
 import com.weskley.hdc_app.viewmodel.TreatmentViewModel
@@ -146,7 +148,7 @@ fun TreatmentScreen(
         treatmentState.endDate.value = endDate
     }
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().background(Color.LightGray),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -184,6 +186,13 @@ fun TreatmentScreen(
                             treatmentEvent(TreatmentEvent.SaveTreatment)
                             treatmentEvent(TreatmentEvent.hideAddDialog)
                             selectedDate.value = LocalDate.now()
+                            if (!isUpdate.value) {
+                                Toast.makeText(context, "Tratamento adicionado", Toast.LENGTH_SHORT)
+                                    .show()
+                            } else {
+                                Toast.makeText(context, "Tratamento atualizado", Toast.LENGTH_SHORT)
+                                    .show()
+                            }
                         } else {
                             error.value = "Preencha todos os campos"
                             Toast.makeText(
@@ -392,11 +401,11 @@ fun ShowStatus(
                 val copiedImagePath = copyImageToAppDirectory(context, it)
                 copiedImagePath?.let { copiedImage ->
                     medicineState.image.value = copiedImage
-                    Toast.makeText(context, "Imagem selecionada da galeria", Toast.LENGTH_SHORT)
-                        .show()
+                    /*Toast.makeText(context, "Imagem selecionada da galeria", Toast.LENGTH_SHORT)
+                        .show()*/
                 }
             } ?: run {
-                Toast.makeText(context, "Nenhuma imagem selecionada", Toast.LENGTH_SHORT).show()
+                /*Toast.makeText(context, "Nenhuma imagem selecionada", Toast.LENGTH_SHORT).show()*/
             }
         }
 
@@ -441,6 +450,7 @@ fun ShowStatus(
                     selectedTextTypes.value = types[0]
                     selectedTextRepetition.value = repetition[0]
                     medicineEvent(MedicineEvent.HideAddMedicineDialog)
+                    Toast.makeText(context, "Medicamento adicionado", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(context, "Preencha todos os campos", Toast.LENGTH_SHORT).show()
                 }
@@ -660,7 +670,7 @@ fun ShowStatus(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp)
-                    .height(250.dp),
+                    .height(200.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(filteredMedicines) { medicine ->
@@ -950,14 +960,18 @@ fun TreatmentItem(
         loadItem(treatment)
     }) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().background(
+                Brush.horizontalGradient(
+                    listOf(color8, color9)
+                )
+            ),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Spacer(modifier = Modifier.width(8.dp))
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .padding(bottom = 8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text = treatment.title,
@@ -973,7 +987,6 @@ fun TreatmentItem(
             ) {
                 Icon(
                     painterResource(R.drawable.twotone_arrow_left_24), contentDescription = null,
-                    tint = Color.Red,
                     modifier = Modifier.size(28.dp)
                 )
             }

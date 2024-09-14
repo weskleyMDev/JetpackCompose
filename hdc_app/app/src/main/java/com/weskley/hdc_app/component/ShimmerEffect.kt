@@ -31,9 +31,9 @@ import androidx.compose.ui.unit.dp
 fun ShimmerEffect() {
     fun Modifier.shimmerEffect(): Modifier = composed {
         val colors = listOf(
-            Color.LightGray.copy(alpha = 0.6f),
-            Color.LightGray.copy(alpha = 0.2f),
-            Color.LightGray.copy(alpha = 0.6f),
+            Color.Black.copy(alpha = 0.6f),
+            Color.Black.copy(alpha = 0.2f),
+            Color.Black.copy(alpha = 0.6f),
         )
         val transition = rememberInfiniteTransition(label = "shimmer")
         val shimmerAnimation = transition.animateFloat(
@@ -60,8 +60,9 @@ fun ShimmerEffect() {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp)
+                .height(80.dp)
         ) {
-            Box(
+            /*Box(
                 modifier = Modifier
                     .size(80.dp)
                     .clip(CircleShape)
@@ -80,7 +81,7 @@ fun ShimmerEffect() {
                         .width(80.dp)
                         .shimmerEffect())
                 }
-            }
+            }*/
         }
     }
 }

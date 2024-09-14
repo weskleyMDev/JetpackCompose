@@ -281,19 +281,19 @@ fun UserItem(
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = user.name.replaceFirstChar { it.uppercase() },
+            text = user.name,
             fontSize = 30.sp,
             fontWeight = FontWeight.Bold,
             color = DarkBlue
         )
         Text(
-            text = user.age.toString(),
+            text = "Idade: ${user.age} anos",
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
             color = DarkBlue
         )
         Text(
-            text = user.bloodType,
+            text = "Tipo Sanguíneo: ${user.bloodType}",
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
             color = DarkBlue

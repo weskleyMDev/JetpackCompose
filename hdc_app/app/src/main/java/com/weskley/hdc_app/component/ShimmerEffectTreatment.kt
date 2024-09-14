@@ -26,9 +26,9 @@ import androidx.compose.ui.unit.dp
 fun ShimmerEffectTreatment() {
     fun Modifier.shimmerEffect(): Modifier = composed {
         val colors = listOf(
-            Color.LightGray.copy(alpha = 0.6f),
-            Color.LightGray.copy(alpha = 0.2f),
-            Color.LightGray.copy(alpha = 0.6f),
+            Color.Black.copy(alpha = 0.6f),
+            Color.Black.copy(alpha = 0.2f),
+            Color.Black.copy(alpha = 0.6f),
         )
         val transition = rememberInfiniteTransition(label = "shimmer")
         val shimmerAnimation = transition.animateFloat(

@@ -21,29 +21,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.twotone.AddAPhoto
 import androidx.compose.material.icons.twotone.AddAlarm
-import androidx.compose.material.icons.twotone.AddPhotoAlternate
 import androidx.compose.material.icons.twotone.CrisisAlert
-import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.KeyboardDoubleArrowDown
 import androidx.compose.material.icons.twotone.NotificationsActive
 import androidx.compose.material.icons.twotone.NotificationsOff
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -69,9 +58,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -83,10 +70,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.room.Room
 import coil.compose.rememberAsyncImagePainter
-import com.weskley.hdc_app.R
 import com.weskley.hdc_app.component.MyTimePicker
 import com.weskley.hdc_app.component.ShimmerEffect
-import com.weskley.hdc_app.controller.ScreenController
 import com.weskley.hdc_app.database.TreatmentDatabase
 import com.weskley.hdc_app.event.MedicineEvent
 import com.weskley.hdc_app.model.Medicine
@@ -97,9 +82,6 @@ import com.weskley.hdc_app.ui.theme.MediumDarkBlue
 import com.weskley.hdc_app.ui.theme.Turquoise
 import com.weskley.hdc_app.viewmodel.AlarmViewModel
 import com.weskley.hdc_app.viewmodel.MedicineViewModel
-import com.weskley.hdc_app.viewmodel.TreatmentViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
@@ -164,15 +146,6 @@ fun AlarmScreen(
         val file = File(context.filesDir, "HDC_${System.currentTimeMillis()}.jpg")
         return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
     }
-    /*fun incrementAlarm(id: Int, amount: Int) {
-        CoroutineScope(Dispatchers.IO).launch {
-            val medicine = medicineDao.getMedicineById(id) ?: return@launch
-            val newCount = medicine.count + amount
-            val updatedMedicine = medicine.copy(count = newCount)
-            medicineDao.upsertMedicine(updatedMedicine)
-        }
-    }*/
-
     LaunchedEffect(isLoading.value) {
         delay(2000)
         isLoading.value = false
@@ -216,7 +189,6 @@ fun AlarmScreen(
         )
     }
     if (medicineState.showAddMedicine.value) {
-        // Atualize o estado do formulário baseado em isUpdate
         val isUpdating = isUpdate.value && updateMedicine.value != null
         if (isUpdating) {
             medicineState.name.value = updateMedicine.value!!.name
@@ -257,7 +229,7 @@ fun AlarmScreen(
         }
     }
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().background(Color.LightGray),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -423,7 +395,7 @@ fun MedicineItem(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
-            .background(Color.Black)
+            .background(Color.LightGray)
             .graphicsLayer {
                 rotationX = rotation
                 cameraDistance = 8f * density

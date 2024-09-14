@@ -136,7 +136,7 @@ class NotificationServiceImp @Inject constructor(
             "AlarmDebug",
             "Alarm with ID ${medicine.id} created for ${calendar.time}"
         )
-        Toast.makeText(context, "Alarme [${medicine.name}] ativado para [${medicine.time}]", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "Alarme ${medicine.name} ativado para ${medicine.time}", Toast.LENGTH_SHORT).show()
     }
 
     override fun setRepeatingAlarm(medicine: Medicine) {
