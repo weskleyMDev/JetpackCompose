@@ -9,6 +9,7 @@ data class UserState(
     val name: MutableState<String> = mutableStateOf(""),
     val age: MutableState<String> = mutableStateOf(""),
     val bloodType: MutableState<String> = mutableStateOf(""),
+    val imageUri: MutableState<String> = mutableStateOf(""),
     val openDialog: MutableState<Boolean> = mutableStateOf(false),
     val userUpdated: User? = null
 )

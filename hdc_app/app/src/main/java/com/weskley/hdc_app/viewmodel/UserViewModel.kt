@@ -39,9 +39,10 @@ class UserViewModel @Inject constructor(
             }
             UserEvent.SaveUser -> {
                 viewModelScope.launch {
-                    val name = userState.value.name.value
-                    val age = userState.value.age.value
-                    val bloodType = userState.value.bloodType.value
+                    val name = userState.value.name.value.trim().replaceFirstChar { it.uppercase() }
+                    val age = userState.value.age.value.trim()
+                    val bloodType = userState.value.bloodType.value.trim().replaceFirstChar { it.uppercase() }
+                    val imageUri = userState.value.imageUri.value
 
                     if(name.isBlank() || age.isBlank() || bloodType.isBlank()) {
                         return@launch
@@ -50,11 +51,13 @@ class UserViewModel @Inject constructor(
                     val user = userState.value.userUpdated?.copy(
                         name = name,
                         age = age.toInt(),
-                        bloodType = bloodType
+                        bloodType = bloodType,
+                        imageUri = imageUri
                     ) ?: User(
                         name = name,
                         age = age.toInt(),
-                        bloodType = bloodType
+                        bloodType = bloodType,
+                        imageUri = imageUri
                     )
 
                     viewModelScope.launch(Dispatchers.IO) {
@@ -66,6 +69,7 @@ class UserViewModel @Inject constructor(
                             name = mutableStateOf(""),
                             age = mutableStateOf(""),
                             bloodType = mutableStateOf(""),
+                            imageUri = mutableStateOf(""),
                             userUpdated = null
                         )
                     }

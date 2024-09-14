@@ -49,7 +49,7 @@ class NotificationServiceImp @Inject constructor(
 
         val notificationIntent = Intent(
             Intent.ACTION_VIEW,
-            "$MY_URI/$MEDICINE=$name&$TIME=$time&$MEDICINE_ID=$id&$MEDICINE_AMOUNT=$amount".toUri(),
+            "$MY_URI/$MEDICINE=$name&$TIME=$type&$MEDICINE_ID=$id&$MEDICINE_AMOUNT=$amount".toUri(),
             context,
             MainActivity::class.java
         ).let { intent ->
@@ -94,6 +94,7 @@ class NotificationServiceImp @Inject constructor(
                         .setSummaryText(Constants.SUMMARY_GROUP_TEXT)
                 )
                 .setGroup(Constants.GROUP_KEY)
+                .setOngoing(true)
                 .setAutoCancel(true)
                 .setGroupSummary(true)
 
@@ -139,7 +140,7 @@ class NotificationServiceImp @Inject constructor(
     }
 
     override fun setRepeatingAlarm(medicine: Medicine) {
-        val formatter = SimpleDateFormat("dd/MM - HH:mm", Locale.getDefault())
+        val formatter = SimpleDateFormat("HH:mm - dd/MM", Locale.getDefault())
         val now = Calendar.getInstance()
         val initialHour = now.get(Calendar.HOUR_OF_DAY)
         val initialMinute = now.get(Calendar.MINUTE)
@@ -178,7 +179,7 @@ class NotificationServiceImp @Inject constructor(
             "AlarmDebug",
             "Alarm with ID ${medicine.id} created for ${calendar.time} to repeat each ${medicine.repetition} hours"
         )
-        Toast.makeText(context, "Alarme [${medicine.name}] ativado para [${formatter.format(calendar.time)}]", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "Próximo alarme às ${formatter.format(calendar.time)}", Toast.LENGTH_SHORT).show()
     }
 
     override fun isAlarmActive(id: Int): Boolean {

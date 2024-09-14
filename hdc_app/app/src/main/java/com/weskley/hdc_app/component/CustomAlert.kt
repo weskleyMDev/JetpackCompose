@@ -25,7 +25,7 @@ fun CustomAlert(
     text: @Composable (() -> Unit)? = null,
     icon: ImageVector? = null,
     confirmText: String = "OK",
-    dismissText: String = "Cancelar"
+//    dismissText: String = "Cancelar"
 ) {
     AlertDialog(
         icon = {
@@ -59,12 +59,12 @@ fun CustomAlert(
                 Text(text = confirmText)
             }
         },
-        dismissButton = {
+        /*dismissButton = {
             TextButton(
                 onClick = { onDismiss() }
             ) {
                 Text(text = dismissText)
             }
-        }
+        }*/
     )
 }

@@ -81,14 +81,14 @@ fun FeedbackScreen(
         text.value = if (isSelected == "Não") feedback else "-"
         feedbackState.justification.value = text.value
         feedbackState.answer.value = isSelected
-        feedbackState.entryTime.value = time
+        feedbackState.entryTime.value = getMedicine?.time ?: "-"
         feedbackEvent(FeedbackEvent.SaveFeedback)
         feedbackEvent(FeedbackEvent.HideAddFeedback)
     }
     if (feedbackState.isAddDialogOpen.value) {
         CustomAlert(
             onDismiss = {
-                feedbackEvent(FeedbackEvent.HideAddFeedback)
+
             },
             onConfirm = {
                 alarmViewModel.cancelAlarm(id)
@@ -100,7 +100,10 @@ fun FeedbackScreen(
                 }
                 fetchData()
             },
-            title = "$medicine[$id] - $amount - $time",
+            title = """
+                $medicine
+                $amount - $time
+            """.trimIndent(),
             text = {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
