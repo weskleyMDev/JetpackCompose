@@ -33,6 +33,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -51,6 +52,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -94,44 +96,69 @@ fun ProfileScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (userState.users.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(Color.White)
-                    .border(2.dp, Color.Black, CircleShape),
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Image(
-                    painter = rememberAsyncImagePainter(model = R.drawable.add_user),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.clickable { userEvent(UserEvent.ShowDialog) }
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        .border(2.dp, Color.Black, CircleShape),
+                ) {
+                    Image(
+                        painter = rememberAsyncImagePainter(model = R.drawable.add_user),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.clickable { userEvent(UserEvent.ShowDialog) }
+                    )
+                }
+                Text(
+                    text = "Adicionar Usuário",
+                    style = MaterialTheme.typography.labelLarge,
+                    textAlign = TextAlign.Center,
+                    color = DarkBlue,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Nenhum Usuário Encontrado",
+                    style = MaterialTheme.typography.headlineLarge,
+                    textAlign = TextAlign.Center,
+                    color = DarkBlue
                 )
             }
         } else {
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(bottom = 8.dp)
-                    .background(Color.LightGray),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                items(userState.users) { user ->
-                    editUser.value = user
-                    UserItem(user)
+            Column {
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(bottom = 8.dp)
+                        .background(Color.LightGray),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    items(userState.users) { user ->
+                        editUser.value = user
+                        UserItem(user)
+                    }
+                }
+                ExtendedFloatingActionButton(
+                    modifier = Modifier
+                        .padding(bottom = 8.dp, end = 8.dp)
+                        .align(Alignment.End),
+                    onClick = {
+                        isUpdate.value = true
+                        userEvent(UserEvent.EditUser(editUser.value!!))
+                    }
+                ) {
+                    Text(text = "EDITAR")
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(imageVector = Icons.TwoTone.Edit, contentDescription = null)
                 }
             }
         }
-        ExtendedFloatingActionButton(
-            modifier = Modifier.padding(bottom = 8.dp, end = 8.dp).align(Alignment.End),
-            onClick = {
-                isUpdate.value = true
-                userEvent(UserEvent.EditUser(editUser.value!!))
-            }
-        ) {
-            Text(text = "EDITAR")
-            Spacer(modifier = Modifier.width(8.dp))
-            Icon(imageVector = Icons.TwoTone.Edit, contentDescription = null)
-        }
+
     }
 }
 
@@ -271,12 +298,16 @@ fun UserItem(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            painter = rememberAsyncImagePainter(user.imageUri),
+            painter =
+            if (user.imageUri.isEmpty()) {
+                rememberAsyncImagePainter(model = R.drawable.perfil)
+            } else {
+                rememberAsyncImagePainter(user.imageUri)
+            },
             contentDescription = null,
             modifier = Modifier
                 .size(200.dp)
-                .clip(CircleShape)
-                .background(Color.Gray),
+                .clip(CircleShape),
             contentScale = ContentScale.Crop
         )
         Spacer(modifier = Modifier.height(16.dp))

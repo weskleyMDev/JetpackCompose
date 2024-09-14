@@ -235,7 +235,7 @@ fun AlarmScreen(
     ) {
         if (medicineState.medicines.isEmpty()) {
             Column(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).padding(12.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -244,12 +244,22 @@ fun AlarmScreen(
                         .padding(bottom = 8.dp)
                         .size(46.dp),
                     imageVector = Icons.TwoTone.NotificationsOff,
-                    contentDescription = null
+                    contentDescription = null,
+                    tint = DarkBlue
                 )
                 Text(
                     text = "Nenhuma Notificação Encontrada",
                     style = MaterialTheme.typography.headlineLarge,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    color = DarkBlue
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Adicione um medicamento na tela de Tratamentos",
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                    color = DarkBlue,
+                    fontWeight = FontWeight.Bold
                 )
             }
         } else {

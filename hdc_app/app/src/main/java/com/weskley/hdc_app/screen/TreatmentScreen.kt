@@ -91,6 +91,7 @@ import com.weskley.hdc_app.model.Medicine
 import com.weskley.hdc_app.model.Treatment
 import com.weskley.hdc_app.state.MedicineState
 import com.weskley.hdc_app.state.TreatmentState
+import com.weskley.hdc_app.ui.theme.DarkBlue
 import com.weskley.hdc_app.ui.theme.color1
 import com.weskley.hdc_app.ui.theme.color2
 import com.weskley.hdc_app.ui.theme.color3
@@ -286,12 +287,14 @@ fun TreatmentScreen(
                         .padding(bottom = 8.dp)
                         .size(46.dp),
                     imageVector = Icons.TwoTone.Healing,
-                    contentDescription = null
+                    contentDescription = null,
+                    tint = DarkBlue
                 )
                 Text(
                     text = "Nenhum Tratamento Encontrado",
                     style = MaterialTheme.typography.headlineLarge,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    color = DarkBlue
                 )
             }
         } else {
@@ -379,7 +382,9 @@ fun ShowStatus(
         maxIndicatorValue = 1
     } else {
         indicatorValue = filteredMedicines.sumOf { it.count }
-        val totalAmount = filteredMedicines.sumOf { it.amount.toIntOrNull() ?: 0 }
+        val totalAmount = filteredMedicines.sumOf {
+            (24 / (it.repetition.toIntOrNull() ?: 1)) * (it.amount.toIntOrNull() ?: 1)
+        }
         maxIndicatorValue = (treatment?.duration ?: 0) * totalAmount
     }
     val imageUri = remember { mutableStateOf<Uri?>(null) }
@@ -460,7 +465,9 @@ fun ShowStatus(
                 modifier = Modifier.fillMaxWidth(),
                 value = medicineState.name.value,
                 onValueChange = { medicineState.name.value = it },
-                label = { Text(text = "Medicamento") }
+                label = { Text(text = "Medicamento") },
+                maxLines = 1,
+                singleLine = true
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -500,7 +507,8 @@ fun ShowStatus(
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedTypes.value)
                         },
                         readOnly = true,
-                        modifier = Modifier.menuAnchor()
+                        modifier = Modifier.menuAnchor(),
+                        maxLines = 1
                     )
                     ExposedDropdownMenu(
                         expanded = expandedTypes.value,
@@ -561,7 +569,8 @@ fun ShowStatus(
                     }
                 },
                 readOnly = true,
-                singleLine = true
+                singleLine = true,
+                maxLines = 1
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -674,7 +683,8 @@ fun ShowStatus(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(filteredMedicines) { medicine ->
-                    val meta = ((treatment?.duration ?: 0) * medicine.amount.toIntOrNull()!!)
+                    val qtdDiaria = (24/medicine.repetition.toInt())*medicine.amount.toInt()
+                    val meta = ((treatment?.duration ?: 0) * qtdDiaria)
                     MedicineItem(
                         medicine = medicine,
                         meta = meta,
